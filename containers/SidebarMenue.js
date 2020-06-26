@@ -1,6 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import {Actions} from 'react-native-router-flux';
+
+import styles from '../styles/Main.style.js';
+
 
 class SidebarMenue extends React.Component {
 
@@ -8,9 +11,16 @@ class SidebarMenue extends React.Component {
 
     return (
         <View>
-            <Text>SidebarMenu Area</Text>
             <Text>Placeholder</Text>
-            <Text onPress={() =>  Actions.masterDataPage()}>Stammdaten</Text>
+            <FlatList style={styles.sidebarBottom}
+                data={[
+                    {key: "frontPage", text: "Startseite", action: Actions.frontPage},
+                    {key: "masterDataPage", text: "Stammdaten", action: Actions.masterDataPage},
+                    {key: "trainingPlanPage", text: "Trainingsplan erstellen", action: Actions.trainingPlanPage},
+                ]}
+                renderItem={({item}) => <Text onPress={() =>  {item.action()}}>{item.text}</Text> }
+            />
+            
         </View>
         
     );

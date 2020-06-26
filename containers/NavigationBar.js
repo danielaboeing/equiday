@@ -2,14 +2,16 @@ import React from 'react';
 import { View, Text, Image, TouchableHighlight } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
+import styles from '../styles/Main.style.js';
+
 class NavigationBar extends React.Component {
 
     render(){
     return (
-        <View>
-            <Text>Seite: {this.props.title}</Text>
-            <TouchableHighlight onPress={() => Actions.drawerOpen()} >
-            <Image source={require('../assets/menu.png')} />
+        <View style={styles.navigationBar}>
+            <Text style={styles.navbarText}>{this.props.title}</Text>
+            <TouchableHighlight style={styles.hamburger}  onPress={() => Actions.drawerOpen()} >
+            <Image style={styles.hamburgerPic} source={require('../assets/menu.png')} />
 
             </TouchableHighlight>
         </View>
@@ -17,5 +19,6 @@ class NavigationBar extends React.Component {
     );
 }
 }
+
 
 export default NavigationBar;

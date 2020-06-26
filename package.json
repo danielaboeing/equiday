@@ -8,8 +8,10 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@expo-google-fonts/rock-salt": "^0.1.0",
     "@react-navigation/drawer": "^5.8.4",
-    "expo": "~37.0.3",
+    "expo": "^37.0.12",
+    "expo-font": "~8.1.0",
     "expo-sqlite": "^8.1.0",
     "react": "~16.9.0",
     "react-dom": "~16.9.0",
