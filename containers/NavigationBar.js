@@ -6,7 +6,11 @@ import styles from '../styles/Main.style.js';
 
 class NavigationBar extends React.Component {
 
-    render(){
+    constructor(){
+        super()
+    }
+
+    render(){ 
     return (
         <View style={styles.navigationBar}>
             <Text style={styles.navbarText}>{this.props.title}</Text>
