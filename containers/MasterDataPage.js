@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-function MasterDataPage() {
+function MasterDataPage(props) {
     return (
         <View>
-            <Text>MasterData Area</Text>
+            <Text>MasterData Area: {props.id}</Text>
         </View>
         
     );

@@ -95,7 +95,6 @@ export default StyleSheet.create({
         paddingTop: 10,
         paddingLeft: 10,
         backgroundColor: bgColorAlt,
-        marginBottom: 20,
     },
     detailSection: {
         flexDirection: 'row',
@@ -103,12 +102,21 @@ export default StyleSheet.create({
     detailText: {
         flex: 1,
         fontFamily: specialFont,
-        fontSize: 10,
+        fontSize: 12,
     },
     detailTextEntry: {
         flex: 1,
         fontFamily: normalFont,
-        fontSize: 12,
+        fontSize: 15,
+        height: 20,
+        /*borderColor: highlightColor,
+        borderWidth: 1*/
+    },
+    detailImgEntry: {
+        flex: 1,
+        resizeMode: 'contain',
+        width: 20,
+        margin: 5
     },
     bottomActionBtn: {
         backgroundColor: bgColor,

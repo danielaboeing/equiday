@@ -9,17 +9,20 @@ class SidebarMenue extends React.Component {
 
     constructor(){
         super()
+        this.state = {
+            showHorsesMenu: false,
+            showTrainingMenu: false,
+            horses: [{nick: "Snow", id: 1}]
+        }
     }
 
-    componentDidMount(){
-    }
 
 
     render(){
     return (
         <View>
             <View style={styles.sidebarTop}>
-                <Image style={styles.sidebarLogo} source={require('../assets/logo.png')}></Image>
+                <Image style={styles.sidebarLogo} source={require('../assets/icon.png')}></Image>
                 <Text style={styles.sidebarLogoText}>Equiday</Text>
             </View>
             <View style={styles.sidebarBottom}>
@@ -27,29 +30,33 @@ class SidebarMenue extends React.Component {
                     <Text style={styles.sidebarMenuItem}>Startseite</Text>
                 </TouchableHighlight>
 
-                <TouchableHighlight onPress={() => console.log("Open")} >
-                    <Text style={styles.sidebarMenuItem}>Pferde v</Text>
+                <TouchableHighlight onPress={() => this.setState({showHorsesMenu: !this.state.showHorsesMenu})} >
+                    <Text style={styles.sidebarMenuItem}>Pferde</Text>
                 </TouchableHighlight>
-                    <TouchableHighlight onPress={() => Actions.masterDataPage()} >
-                            <Text style={styles.sidebarSubItem}>Snow</Text>
-                    </TouchableHighlight>
+                    {this.state.showHorsesMenu && this.state.horses.map((item) => ([
+                    <TouchableHighlight key={item.id} onPress={() => Actions.masterDataPage({id: item.id})} >
+                            <Text style={styles.sidebarSubItem}>{item.nick}</Text>
+                    </TouchableHighlight>,
+                    ]))}
 
-                <TouchableHighlight onPress={() => console.log("Open")} >
-                    <Text style={styles.sidebarMenuItem}>Training v</Text>
+                <TouchableHighlight onPress={() => this.setState({showTrainingMenu: !this.state.showTrainingMenu})} >
+                    <Text style={styles.sidebarMenuItem}>Training</Text>
                 </TouchableHighlight>
-                    <TouchableHighlight onPress={() => Actions.allTrainingsPage()} >
+                    {this.state.showTrainingMenu && ([
+                    <TouchableHighlight key="allTrainings" onPress={() => Actions.allTrainingsPage()} >
                         <Text style={styles.sidebarSubItem}>Alle Trainings</Text>
-                    </TouchableHighlight>
-                    <TouchableHighlight onPress={() => Actions.trainingPlanPage()} >
+                    </TouchableHighlight>,
+                    <TouchableHighlight  key="trainingPlan" onPress={() => Actions.trainingPlanPage()} >
                         <Text style={styles.sidebarSubItem}>Trainingsplan erstellen</Text>
-                    </TouchableHighlight>
-                    <TouchableHighlight onPress={() => Actions.trainingPlanOverviewPage()} >
+                    </TouchableHighlight>,
+                    <TouchableHighlight  key="trainingPlanOverview" onPress={() => Actions.trainingPlanOverviewPage()} >
                         <Text style={styles.sidebarSubItem}>Trainingspläne ansehen</Text>
                     </TouchableHighlight>
+                    ])}
 
                 <TouchableHighlight onPress={() => console.log("Termine")} >
                     <Text style={styles.sidebarMenuItem}>Termine</Text>
-                </TouchableHighlight>
+                </TouchableHighlight> 
 
             </View>
         </View>

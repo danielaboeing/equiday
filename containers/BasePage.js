@@ -28,9 +28,9 @@ constructor(){
                 navBar = {NavigationBar}                
             >
                 <Stack>
-                    <Scene key="frontPage" component ={FrontPage} title="Startseite" initial />
+                    <Scene key="frontPage" component ={FrontPage} title="Startseite"  />
                     <Scene key="masterDataPage" component ={MasterDataPage} title="Stammdaten"  />
-                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen"  />
+                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen" initial  />
                     <Scene key="allTrainingsPage" component ={AllTrainingsPage} title="Trainings"  />
                     <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne"  />
                     <Scene key="singleTrainingPage" component ={SingleTrainingPage} title="Trainingspläne"  />
