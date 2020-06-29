@@ -38,12 +38,29 @@ removeCategory(item){
     }})
 }
 
+addCategory(item){
+    //TODO get info from DB
+    let catName = "";
+    if (item == "0"){
+        catName = "Western"
+    }
+    else if (item == "1") {
+        catName = "Stangenarbeit"
+    }
+    else{
+        return
+    }
+    this.setState(function (currentState) { console.log(currentState.selectedCategories.concat(item)); return {
+        selectedCategories: currentState.selectedCategories.concat({id: item, name: catName})
+    }})
+}
+
     render(){
         return (
         <View style={styles.detailSectionWrapper}>
             <View style={styles.detailSection}>
                 <Text style={styles.detailText}>Datum:</Text>
-                <DatePicker
+                <DatePicker style={ {marginRight: 10, flex: 1, height: 40}}
         date={this.state.date}
         mode="date"
         format="DD.MM.YYYY"
@@ -61,10 +78,10 @@ removeCategory(item){
                     style={styles.detailTextEntry}
                     onValueChange={(itemValue) =>
                         this.setState({durationHour: itemValue})
-                    }>
+                    }
                     
-                    <Picker.Item style={styles.detailTextEntry} label="01" value="1" />
-                    <Picker.Item style={styles.detailTextEntry} label="02" value="2" />
+                    >
+                    { [...Array(9).keys()].map((value) => <Picker.Item style={styles.detailTextEntry} label={value.toString() + ":"} value={value.toString()} /> ) }
                 </Picker>
                 <Picker
                     selectedValue={this.state.durationMinute}
@@ -72,8 +89,7 @@ removeCategory(item){
                     onValueChange={(itemValue) =>
                         this.setState({durationMinute: itemValue})
                     }>
-                    <Picker.Item style={styles.detailTextEntry} label="00" value="0" />
-                    <Picker.Item style={styles.detailTextEntry} label="40" value="40" />
+                    { [...Array(60).keys()].map((value) => <Picker.Item style={styles.detailTextEntry} label={value.toString()} value={value.toString()} /> ) }
                 </Picker>
                 <Text style={styles.detailTextEntry}> h </Text>
             </View>
@@ -92,16 +108,23 @@ removeCategory(item){
             <View style={styles.detailSection}>
                 <Text style={styles.detailText}>Kategorie(n):</Text>
                 <FlatList style={styles.sidebarBottom}
-                ListFooterComponent={() => <TouchableHighlight  onPress={() => console.log("Add Cat")}>
-                <Text style={styles.detailTextEntry}>+</Text>
-            </TouchableHighlight>  }
                 data={this.state.selectedCategories}
-                renderItem={({item}) => <TouchableHighlight onPress={() => this.removeCategory(item)}><Text style={styles.detailTextEntry}>{item.name} (x) </Text></TouchableHighlight> }
+                renderItem={({item}) => <TouchableHighlight onPress={() => this.removeCategory(item)}><Text style={styles.detailTextEntry}>{item.name} &#x2717; </Text></TouchableHighlight> }
             ></FlatList>
 
-            </View>
-
-
+</View>
+<View style={styles.detailSection}>
+            <Picker
+                    selectedValue="Kategorie hinzufügen &#x2795;"
+                    style={styles.detailTextEntry}
+                    onValueChange={(itemValue) =>
+                        this.addCategory(itemValue)
+                    }>
+                    <Picker.Item style={styles.detailTextEntry} label="Kategorie hinzufügen &#x2795;" value="" />
+                    <Picker.Item style={styles.detailTextEntry} label="Stangenarbeit" value="1" />
+                    <Picker.Item style={styles.detailTextEntry} label="Western" value="0" />
+                </Picker>
+                </View>     
             <View style={styles.detailSection}>
                 <Text style={styles.detailText}>Ziel:</Text>
                 <TextInput style={styles.detailTextEntry} onChangeText={(text) => this.setState({goal: text})} value={this.state.goal}></TextInput>
@@ -198,15 +221,31 @@ class FootSection extends React.Component {
 class TrainingTable extends React.Component {
 
     renderRow(entry) {
+        const allExercises= [{
+            id: "1",
+            name: "Schritt-Trab-Übergänge"
+        },{
+            id: "2",
+            name: "Stangen-Doppel-T"
+        }]
         return (
-            <View style={styles.tableEntry} key = {entry.key}>
-                <View style={styles.tableRow} key={entry.key + "_main"}>
+            <View style={styles.tableEntry} key = {entry.key }>
+                <View style={styles.tableRow} key={entry.key + "_title"}>
                     <View style={styles.tableCell} >
-                        <TouchableHighlight onPress={() => console.log("Select exercise")}>
+                    <Picker
+                    selectedValue={entry.exercise}
+                    style={styles.detailTextEntry}
+                    onValueChange={(itemValue) =>
+                        entry.exercise = itemValue
+                    }>
+                    {allExercises.map((value) => <Picker.Item style={styles.detailTextEntry} label={value.name} value={value.name} /> )}
+                </Picker>
 
-                        <Text style={styles.tableEntryText}>{entry.exercise}</Text>
-                        </TouchableHighlight>
                     </View>
+                    </View>
+                    {this.renderHead(entry.key)}
+                    <View style={styles.tableRow} key={entry.key + "_main"}>
+
                     <View style={styles.tableCell} >
                     <Picker
                     selectedValue={entry.done}
@@ -214,21 +253,42 @@ class TrainingTable extends React.Component {
                     onValueChange={(itemValue) =>
                         console.log(itemValue)
                     }>
-                    <Picker.Item style={styles.tableEntryText} label="YES" value="1" />
-                    <Picker.Item style={styles.tableEntryText} label="NO" value="0" />
+                    <Picker.Item style={styles.tableEntryText} label="&#x2713;" value="1" />
+                    <Picker.Item style={styles.tableEntryText} label="&#x2717;" value="0" />
                 </Picker>
 
                     </View>
                     <View style={styles.tableCell} >
-                    <Picker
-                    selectedValue={entry.succeeded}
-                    style={styles.tableEntryText}
-                    onValueChange={(itemValue) =>
-                        console.log(itemValue)
-                    }>
-                    <Picker.Item style={styles.tableEntryText} label="gut" value="g" />
-                    <Picker.Item style={styles.tableEntryText} label="mittel" value="m" />
-                </Picker>
+ 
+
+
+                <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => console.log("Change Item")}>
+                {entry.succeeded == 0 ? 
+                    <Image source={require('../assets/selection_pics/traffic_light_green.png')} style={styles.detailImgEntry}></Image>
+                    : 
+                    <Image source={require('../assets/selection_pics/traffic_light.png')} style={styles.detailImgEntry}></Image>
+
+                }
+                </TouchableHighlight>
+                <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => console.log("Change Item")}>
+                {entry.succeeded == 1 ? 
+                    <Image source={require('../assets/selection_pics/traffic_light_yellow.png')} style={styles.detailImgEntry}></Image>
+                    : 
+                    <Image source={require('../assets/selection_pics/traffic_light.png')} style={styles.detailImgEntry}></Image>
+
+                }
+                </TouchableHighlight>
+
+                <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => console.log("Change Item")}>
+                {entry.succeeded == 2 ? 
+                    <Image source={require('../assets/selection_pics/traffic_light_red.png')} style={styles.detailImgEntry}></Image>
+                    : 
+                    <Image source={require('../assets/selection_pics/traffic_light.png')} style={styles.detailImgEntry}></Image>
+
+                }
+                </TouchableHighlight>
+
+
                     </View>
                     <View style={styles.tableCell} >
                     <Picker
@@ -237,8 +297,9 @@ class TrainingTable extends React.Component {
                     onValueChange={(itemValue) =>
                         console.log(itemValue)
                     }>
-                    <Picker.Item style={styles.tableEntryText} label="+" value="0" />
-                    <Picker.Item style={styles.tableEntryText} label="=" value="1" />
+                    <Picker.Item style={styles.tableEntryText} label="+" value="1" />
+                    <Picker.Item style={styles.tableEntryText} label="=" value="0" />
+                    <Picker.Item style={styles.tableEntryText} label="-" value="-1" />
                 </Picker>
 
                     </View>
@@ -249,36 +310,34 @@ class TrainingTable extends React.Component {
                     onValueChange={(itemValue) =>
                         console.log(itemValue)
                     }>
-                    <Picker.Item style={styles.tableEntryText} label="dringend" value="A" />
-                    <Picker.Item style={styles.tableEntryText} label="demnächst" value="B" />
+                    <Picker.Item style={styles.tableEntryText} label="A" value="A" />
+                    <Picker.Item style={styles.tableEntryText} label="B" value="B" />
+                    <Picker.Item style={styles.tableEntryText} label="C" value="C" />
                 </Picker>
 
                     </View>
                 </View>
                 <View style={styles.tableRow} key={entry.key + "_commentary"} >
-                    <View style={styles.tableCell} />
                     <View style={styles.tableCell} ><TextInput style={styles.tableEntryText}>{entry.commentary}</TextInput></View>
                 </View>  
-                
+                <View style={styles.tableDelimiter} />
             </View>
 
 
         );
     }
 
-    renderHead(){
+    renderHead(key){
         const head = {
-            key: "head",
             exercise: "Übung",
             done: "Erledigt?",
             succeeded: "Gelungen?",
             improved: "Verbessert?",
-            repeat: "Wiederholung?"
+            repeat: "Wiederholen?"
         }
         return (
-            <View style={styles.tableEntry} key = {head.key}>
-                <View style={styles.tableRow} key={head.key + "_main"}>
-                    <View style={styles.tableCell} ><Text style={styles.tableHeadText}>{head.exercise}</Text></View>
+            <View style={styles.tableEntry} key = {key + "_head"}>
+                <View style={styles.tableRow}>
                     <View style={styles.tableCell} ><Text style={styles.tableHeadText}>{head.done}</Text></View>
                     <View style={styles.tableCell} ><Text style={styles.tableHeadText}>{head.succeeded}</Text></View>
                     <View style={styles.tableCell} ><Text style={styles.tableHeadText}>{head.improved}</Text></View>
@@ -298,7 +357,7 @@ class TrainingTable extends React.Component {
 
             <ScrollView >
                 <View style={styles.table}>
-                {this.renderHead()}
+                
             {
                 this.props.data.map((datum) => { 
                     return this.renderRow(datum);
@@ -321,7 +380,7 @@ constructor(){
             key: "entry1",
             exercise: "Schritt-Trab-Übergänge",
             done: "y",
-            succeeded: "g",
+            succeeded: "1",
             improved: "+",
             repeat: "A",
             commentary: "Lief ganz gut"
@@ -330,7 +389,7 @@ constructor(){
             key: "entry2",
             exercise: "Schritt-Trab-Übergänge",
             done: "y",
-            succeeded: "g",
+            succeeded: "0",
             improved: "+",
             repeat: "A",
             commentary: "Lief ganz gut"
@@ -339,7 +398,7 @@ constructor(){
             key: "entry3",
             exercise: "Schritt-Trab-Übergänge",
             done: "y",
-            succeeded: "g",
+            succeeded: "2",
             improved: "+",
             repeat: "A",
             commentary: "Lief ganz gut"
@@ -348,7 +407,7 @@ constructor(){
             key: "entry4",
             exercise: "Schritt-Trab-Übergänge",
             done: "y",
-            succeeded: "g",
+            succeeded: "0",
             improved: "+",
             repeat: "A",
             commentary: "Lief ganz gut"

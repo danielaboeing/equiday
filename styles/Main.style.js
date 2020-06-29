@@ -73,7 +73,7 @@ export default StyleSheet.create({
     },
     tableCell: {
         flex: 1, 
-        padding: 5
+        padding: 5,
     },
     tableEntry: {
         flex: 1
@@ -89,6 +89,10 @@ export default StyleSheet.create({
     },
     tableEntryText: {
         fontFamily: normalFont
+    },
+    tableDelimiter: {
+        borderBottomColor: bgColor,
+        borderBottomWidth: 1,
     },
     detailSectionWrapper: {
         paddingBottom: 10,
@@ -116,7 +120,12 @@ export default StyleSheet.create({
         flex: 1,
         resizeMode: 'contain',
         width: 20,
-        margin: 5
+        marginLeft: 20,
+        marginRight: 20
+    },
+    trafficLightTouchable: {
+        height: 15, 
+        width: 20,
     },
     bottomActionBtn: {
         backgroundColor: bgColor,
