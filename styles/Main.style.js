@@ -43,7 +43,7 @@ export default StyleSheet.create({
     },
     sidebarBottom: {
         height: '100%',
-        backgroundColor: bgColorAlt, 
+        backgroundColor: bgColorAlt,
     },
     sidebarMenuItem: {
         color: textColor,
@@ -68,11 +68,11 @@ export default StyleSheet.create({
         fontSize: 18
     },
     tableRow: {
-        alignSelf: 'stretch', 
-        flexDirection: 'row' ,
+        alignSelf: 'stretch',
+        flexDirection: 'row',
     },
     tableCell: {
-        flex: 1, 
+        flex: 1,
         padding: 5,
     },
     tableEntry: {
@@ -113,24 +113,33 @@ export default StyleSheet.create({
         fontFamily: normalFont,
         fontSize: 15,
         height: 20,
-        /*borderColor: highlightColor,
-        borderWidth: 1*/
     },
     detailImgEntry: {
         flex: 1,
         resizeMode: 'contain',
         width: 20,
-        marginLeft: 20,
-        marginRight: 20
     },
     trafficLightTouchable: {
-        height: 15, 
+        height: 15,
         width: 20,
+        marginLeft: 20,
+        marginRight: 20
+
     },
-    bottomActionBtn: {
+    bottomActionBtnWrapper: {
         backgroundColor: bgColor,
         height: 50,
-        justifyContent: 'center'
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    bottomActionBtn: {
+        flex: 1,
+        padding: 10
+    },
+    bottomDelimiter: {
+        borderLeftWidth: 1,
+        borderLeftColor: 'white',
     },
     bottomActionText: {
         fontFamily: specialFont,
