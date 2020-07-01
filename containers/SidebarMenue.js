@@ -43,7 +43,7 @@ class SidebarMenue extends React.Component {
                     <Text style={styles.sidebarMenuItem}>Training</Text>
                 </TouchableHighlight>
                     {this.state.showTrainingMenu && ([
-                    <TouchableHighlight key="allTrainings" onPress={() => Actions.allTrainingsPage()} >
+                    <TouchableHighlight key="allExercises" onPress={() => Actions.allExercisesPage()} >
                         <Text style={styles.sidebarSubItem}>Alle Trainings</Text>
                     </TouchableHighlight>,
                     <TouchableHighlight  key="trainingPlan" onPress={() => Actions.trainingPlanPage()} >

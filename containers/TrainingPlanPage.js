@@ -16,6 +16,7 @@ class TrainingPlanPage extends React.Component {
     constructor() {
         super()
         const dbconn = new DatabaseConnection()
+        dbconn.prepare()
         // TODO aus DB
         this.state = {
             entryData: [{

@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import {Router, Scene, Drawer, Actions} from 'react-native-router-flux';
 
 
-function SingleTrainingPage() {
+function SingleExercisePage() {
     
     return (
         <View>
@@ -12,4 +12,4 @@ function SingleTrainingPage() {
     );
 }
 
-export default SingleTrainingPage;
+export default SingleExercisePage;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-function AllTrainingsPage() {
+function AllExercisesPage() {
     return (
         <View>
             <Text>AllTrainings Area</Text>
@@ -10,4 +10,4 @@ function AllTrainingsPage() {
     );
 }
 
-export default AllTrainingsPage;
+export default AllExercisesPage;
