@@ -6,7 +6,7 @@ import { Asset } from 'expo-asset';
 
 //import populatedDb from '../data/equiday_db.sqlite';
 
-export default class DatabaseConnection  {
+export default class DatabaseConnection {
 
     //TODO Singleton with prepare
 
@@ -19,13 +19,13 @@ export default class DatabaseConnection  {
         this.db.transaction(
             tx => {
                 tx.executeSql(
-                    "SELECT name FROM sqlite_master WHERE type='table';", 
+                    "SELECT name FROM sqlite_master WHERE type='table';",
                     [],
                     (tx, results) => {
-                        if (results.rows.length == 0){
+                        if (results.rows.length == 0) {
                             this.prepare()
                             this.createExercises()
-                            this.insertPlaceholderData()                    
+                            this.insertPlaceholderData()
                         }
                     },
                     (tx, error) => {
@@ -37,7 +37,7 @@ export default class DatabaseConnection  {
                 console.log("Transaction error: " + error); // TODO Debug only
             },
             () => {
-                console.log("Transaction done " ); // TODO debug only
+                console.log("Transaction done "); // TODO debug only
             }
         )
 
@@ -48,34 +48,34 @@ export default class DatabaseConnection  {
         this.state.db._db.close()
     }*/
 
-    
-    executeBatch(sql){ // TODO debug only
+
+    executeBatch(sql) { // TODO debug only
         this.db.transaction(
             tx => {
                 sql.map((value) =>
-                tx.executeSql(
-                    value, 
-                    [],
-                    (tx, results) => {
-                        //console.log("Query successfull")
-                        //console.log(results)
-                    },
-                    (tx, error) => {
-                        console.log("Could not execute query: " + error);
-                    }
-                )
+                    tx.executeSql(
+                        value,
+                        [],
+                        (tx, results) => {
+                            //console.log("Query successfull")
+                            //console.log(results)
+                        },
+                        (tx, error) => {
+                            console.log("Could not execute query: " + error);
+                        }
+                    )
                 )
             },
             error => {
                 console.log("Transaction error: " + error);
             },
             () => {
-                console.log("Transaction done " );
+                console.log("Transaction done ");
             }
         )
     }
 
-    getPlan(id, onSuccess,onError){ 
+    getPlanMeta(id, onSuccess, onError) {
         this.db.transaction(
             tx => {
                 tx.executeSql(
@@ -91,14 +91,13 @@ export default class DatabaseConnection  {
                     [id],
                     (tx, result) => {
                         let jsonResult = {}
-                        if (result.rows.length == 0){
+                        if (result.rows.length == 0) {
                             // TODO blank initialize
                         }
                         else {
-                            // TODO get exercises
                             let entry = result.rows.item(0)
                             let selectedCategories = []
-                            result.rows._array.map((value) => {selectedCategories.push({id: value.category_id, name: value.description})})
+                            result.rows._array.map((value) => { selectedCategories.push({ id: value.category_id, name: value.category_name }) })
                             jsonResult.headData = {
                                 date: entry.date,
                                 durationHour: (Math.floor(entry.duration / 60)).toString(),
@@ -110,10 +109,51 @@ export default class DatabaseConnection  {
                             jsonResult.footData = {
                                 riderMood: entry.riderMood,
                                 horseMood: entry.horseMood,
-                                commentary: entry.commentary
+                                commentary: entry.plan_commentary
                             }
                         }
-                        console.log(jsonResult)
+                        onSuccess(tx, jsonResult)
+                    },
+                    onError
+                )
+            },
+        )
+
+    }
+
+    getPlanExercises(id, onSuccess, onError) {
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    ` SELECT * FROM plan p
+                    LEFT OUTER JOIN plan_exercise pe
+                    ON p.plan_id = pe.plan_id
+                    LEFT OUTER JOIN exercise e
+                    ON pe.exercise_id = e.exercise_id
+                    LEFT OUTER JOIN exerciseLookup el
+                    ON e.exercise_id = el.exercise_id 
+                    WHERE p.plan_id = ?
+                    ;`, // TODO Sprache flexibel 
+                    [id],
+                    (tx, result) => {
+                        let jsonResult = {}
+                        if (result.rows.length == 0) {
+                            // TODO blank initialize
+                        }
+                        else {
+                            jsonResult.entryData = []
+                            result.rows._array.map((value) => {
+                                jsonResult.entryData.push({
+                                    key: value.exercise_id,
+                                    exercise: value.exercise_name,
+                                    done: value.done,
+                                    succeeded: value.succeeded,
+                                    improved: value.improved,
+                                    repeat: value.repeat,
+                                    commentary: value.exercise_commentar
+                                })
+                            })
+                        }
                         onSuccess(tx, jsonResult)
                     },
                     onError
@@ -124,18 +164,78 @@ export default class DatabaseConnection  {
     }
 
 
-    insertPlaceholderData(){
-        const stmt = [
-            'INSERT INTO horse VALUES(NULL, "Pedro", "Charly", NULL, "18.08.2011", "g", NULL, 156, 527, NULL, NULL, NULL, NULL, "");',
-            'INSERT INTO plan VALUES(NULL, "02.07.2020", 75, "", NULL, NULL, "", 1);',
-            'INSERT INTO plan_category VALUES(1, 1);'
-        ]
+    savePlanMeta(plan_id, dataHead, dataFoot, onSuccess, onError){
 
-        this.executeBatch(stmt) 
+        const duration = dataHead.durationHour*60+dataHead.durationMinute
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    "INSERT OR REPLACE INTO plan VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+                    [plan_id,
+                    dataHead.date,
+                    duration, 
+                    dataHead.goal,
+                    dataFoot.riderMood,
+                    dataFoot.horseMood,
+                    dataFoot.plan_commentary,
+                    dataHead.horse.id],
+                )
+                dataHead.selectedCategories.map((value) =>
+                tx.executeSql(
+                    "INSERT OR REPLACE INTO plan_category VALUES(?, ?);",
+                    [plan_id,
+                    value.id],
+                )
+                )
+            },
+            onError,
+            onSuccess
+        )
 
     }
 
-    createExercises(){
+
+
+    savePlanEntry(plan_id, dataEntry, onSuccess, onError){
+
+        this.db.transaction(
+            tx => {
+                dataEntry.map((value) => {
+                console.log(value)
+                tx.executeSql(
+                    'INSERT OR REPLACE INTO plan_exercise VALUES (?, ?, ?, ?, ?, ?, ?);',
+                    [plan_id, 
+                    value.exercise_id, 
+                    value.done, 
+                    value.succeeded,
+                    value.improved,
+                    value.repeat,
+                    value.exercise_commentary],
+                ) }
+                )
+            },
+            onError,
+            onSuccess
+        )
+
+    }
+
+
+
+    insertPlaceholderData() {
+        const stmt = [
+            'INSERT INTO horse VALUES(NULL, "Pedro", "Charly", NULL, "18.08.2011", "g", NULL, 156, 527, NULL, NULL, NULL, NULL, "");',
+            'INSERT INTO plan VALUES(NULL, "02.07.2020", 75, "", NULL, NULL, "", 1);',
+            'INSERT INTO plan_category VALUES(1, 1);',
+            'INSERT INTO plan_exercise VALUES(1, 3, NULL, NULL, NULL, NULL, "Das wollte ich unbedingt wiederholen.");'
+        ]
+
+        this.executeBatch(stmt)
+
+    }
+
+
+    createExercises() {
 
         const exercisesStmt = [
             'INSERT INTO exercise VALUES(NULL, NULL, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 0, 0, 3);',
@@ -150,62 +250,63 @@ export default class DatabaseConnection  {
 
     }
 
-    prepare(){
+    prepare() {
         const dropStmt = [
-        'DROP TABLE IF EXISTS plan_category;',
-        'DROP TABLE IF EXISTS plan_exercise;',
-        'DROP TABLE IF EXISTS horse_reminder;',
-        'DROP TABLE IF EXISTS plan;',
-        'DROP TABLE IF EXISTS exercise;',
-        'DROP TABLE IF EXISTS repetitionIntervall;',
-        'DROP TABLE IF EXISTS reminder;',
-        'DROP TABLE IF EXISTS sizeByUnitLookup;',
-        'DROP TABLE IF EXISTS generalSizeLookup;',
-        'DROP TABLE IF EXISTS horse;',
-        'DROP TABLE IF EXISTS categoryLookup;',
-        'DROP TABLE IF EXISTS reminderLookup;',
-        'DROP TABLE IF EXISTS exerciseLookup;',
-        'DROP TABLE IF EXISTS category;',
-        'DROP TABLE IF EXISTS language;',
-        'DROP TABLE IF EXISTS unitLookup;'
+            'DROP TABLE IF EXISTS plan_category;',
+            'DROP TABLE IF EXISTS plan_exercise;',
+            'DROP TABLE IF EXISTS horse_reminder;',
+            'DROP TABLE IF EXISTS plan;',
+            'DROP TABLE IF EXISTS exercise;',
+            'DROP TABLE IF EXISTS repetitionIntervall;',
+            'DROP TABLE IF EXISTS reminder;',
+            'DROP TABLE IF EXISTS sizeByUnitLookup;', // deprecated
+            'DROP TABLE IF EXISTS generalSizeLookup;', // deprecated
+            'DROP TABLE IF EXISTS sizeLookup;',
+            'DROP TABLE IF EXISTS horse;',
+            'DROP TABLE IF EXISTS categoryLookup;',
+            'DROP TABLE IF EXISTS reminderLookup;',
+            'DROP TABLE IF EXISTS exerciseLookup;',
+            'DROP TABLE IF EXISTS category;',
+            'DROP TABLE IF EXISTS language;',
+            'DROP TABLE IF EXISTS unitLookup;'
         ]
 
         const createStmt = [
-        "CREATE TABLE unitLookup( \
+            "CREATE TABLE unitLookup( \
             unit_id INTEGER PRIMARY KEY, \
-            short_description VARCHAR(5) \
+            short_unit_description VARCHAR(5) \
         );",
-        "CREATE TABLE language( \
+            "CREATE TABLE language( \
             language_id INTEGER PRIMARY KEY, \
-            short_description CHAR(5) \
+            short_language_description CHAR(5) \
         );",
-        "CREATE TABLE categoryLookup( \
+            "CREATE TABLE categoryLookup( \
             language_id INTEGER, \
             category_id INTEGER, \
-            description VARCHAR(50), \
+            category_name VARCHAR(50), \
             FOREIGN KEY(language_id) REFERENCES language(language_id), \
             PRIMARY KEY(language_id, category_id) \
         );",
-        "CREATE TABLE exerciseLookup( \
+            "CREATE TABLE exerciseLookup( \
             language_id INTEGER, \
             exercise_id INTEGER, \
-            name VARCHAR(150), \
-            description TEXT, \
+            exercise_name VARCHAR(150), \
+            exercise_description TEXT, \
             FOREIGN KEY(language_id) REFERENCES language(language_id), \
             FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id), \
             PRIMARY KEY(language_id, exercise_id) \
         );",
-        "CREATE TABLE reminderLookup( \
+            "CREATE TABLE reminderLookup( \
             language_id INTEGER, \
             reminder_id INTEGER, \
-            description VARCHAR(50), \
+            reminder_name VARCHAR(50), \
             FOREIGN KEY(language_id) REFERENCES language(language_id), \
             FOREIGN KEY(reminder_id) REFERENCES exercise(reminder_id), \
             PRIMARY KEY(language_id, reminder_id) \
         );",
-        "CREATE TABLE exercise( \
+            "CREATE TABLE exercise( \
             exercise_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-            photoPath VARCHAR(150), \
+            photo_path_exercise VARCHAR(150), \
             rhythm INTEGER, \
             relaxation INTEGER, \
             connection INTEGER, \
@@ -223,27 +324,21 @@ export default class DatabaseConnection  {
         );",
         "CREATE TABLE repetitionIntervall( \
             repetitionIntervall_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-            unit INTEGER, \
-            value INTEGER, \
-            FOREIGN KEY(unit) REFERENCES unitLookup(unit_id) \
+            repeat_unit INTEGER, \
+            repeat_value INTEGER, \
+            FOREIGN KEY(repeat_unit) REFERENCES unitLookup(unit_id) \
         );",
-        "CREATE TABLE reminder( \
+            "CREATE TABLE reminder( \
             reminder_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-            iconPath VARCHAR(150), \
+            icon_path VARCHAR(150), \
             recommendedRepetitionIntervall INTEGER, \
             FOREIGN KEY (recommendedRepetitionIntervall) REFERENCES repetitionIntervall(repetitionIntervall_id) \
         );",
-        "CREATE TABLE sizeByUnitLookup( \
-            sizeByUnitLookup_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-            size INTEGER, \
-            unit INTEGER, \
-            FOREIGN KEY(unit) REFERENCES unitLookup(unit_id) \
+            "CREATE TABLE sizeLookup( \
+            sizeLookup_id INTEGER PRIMARY KEY AUTOINCREMENT, \
+            size_value VARCHAR(20) \
         );",
-        "CREATE TABLE generalSizeLookup( \
-            generalSizeLookup_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-            size VARCHAR(20) \
-        );",
-        "CREATE TABLE horse( \
+            "CREATE TABLE horse( \
             horse_id INTEGER PRIMARY KEY AUTOINCREMENT, \
             fullname VARCHAR(50), \
             nick VARCHAR(50), \
@@ -253,15 +348,14 @@ export default class DatabaseConnection  {
             equestrian_number VARCHAR(20), \
             heightInCentimeter DOUBLE, \
             weightInKilo DOUBLE, \
-            blanket_size INTEGER,  \
+            blanketSizeInCentimeter INTEGER,  \
             gaiter_size INTEGER, \
             hoof_boots_size INTEGER, \
             bridle_size INTEGER, \
             commentary TEXT, \
-            FOREIGN KEY (blanket_size) REFERENCES sizeByUnitLookup(sizeByUnitLookup_id), \
-            FOREIGN KEY (gaiter_size) REFERENCES generalSizeLookup(generalSizeLookup_id), \
-            FOREIGN KEY (hoof_boots_size) REFERENCES generalSizeLookup(generalSizeLookup_id), \
-            FOREIGN KEY (bridle_size) REFERENCES generalSizeLookup(generalSizeLookup_id) \
+            FOREIGN KEY (gaiter_size) REFERENCES sizeLookup(sizeLookup_id), \
+            FOREIGN KEY (hoof_boots_size) REFERENCES sizeLookup(sizeLookup_id), \
+            FOREIGN KEY (bridle_size) REFERENCES sizeLookup(sizeLookup_id) \
         );",
         "CREATE TABLE horse_reminder( \
             horse_id INTEGER, \
@@ -279,24 +373,25 @@ export default class DatabaseConnection  {
             goal VARCHAR(200), \
             riderMood INTEGER, \
             horseMood INTEGER, \
-            commentary TEXT, \
+            plan_commentary TEXT, \
             horse_id INTEGER, \
             FOREIGN KEY (horse_id) REFERENCES horse(horse_id) \
         );",
-        "CREATE TABLE plan_category( \
+            "CREATE TABLE plan_category( \
             plan_id INTEGER, \
             category_id INTEGER,  \
             PRIMARY KEY(plan_id, category_id), \
             FOREIGN KEY(plan_id) REFERENCES plan(plan_id), \
             FOREIGN KEY(category_id) REFERENCES category(category_id) \
         );",
-        "CREATE TABLE plan_exercise( \
+            "CREATE TABLE plan_exercise( \
             plan_id INTEGER, \
             exercise_id INTEGER, \
             done INTEGER, \
             succeeded INTEGER, \
             improved CHAR(1), \
             repeat CHAR(1), \
+            exercise_commentary TEXT, \
             PRIMARY KEY(plan_id, exercise_id), \
             FOREIGN KEY(plan_id) REFERENCES plan(plan_id), \
             FOREIGN KEY(exercise_id) REFERENCES exercise(exercise_id) \
@@ -319,7 +414,7 @@ export default class DatabaseConnection  {
         const prepareStmt = dropStmt.concat(createStmt).concat(insertStmt);
 
 
-        this.executeBatch(prepareStmt) 
-        
+        this.executeBatch(prepareStmt)
+
     }
 }

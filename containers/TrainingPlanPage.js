@@ -14,74 +14,51 @@ import styles from '../styles/Main.style.js';
 
 class TrainingPlanPage extends React.Component {
 
+
     constructor() {
         super()
 
-
-
-        // TODO aus DB
         this.state = {
-            entryData: [{
-                key: "entry1",
-                exercise: "Schritt-Trab-Übergänge",
-                done: "y",
-                succeeded: "1",
-                improved: "+",
-                repeat: "A",
-                commentary: "Lief ganz gut"
-            },
-            {
-                key: "entry2",
-                exercise: "Schritt-Trab-Übergänge",
-                done: "y",
-                succeeded: "0",
-                improved: "+",
-                repeat: "A",
-                commentary: "Lief ganz gut"
-            },
-            {
-                key: "entry3",
-                exercise: "Schritt-Trab-Übergänge",
-                done: "y",
-                succeeded: "2",
-                improved: "+",
-                repeat: "A",
-                commentary: "Lief ganz gut"
-            },
-            {
-                key: "entry4",
-                exercise: "Schritt-Trab-Übergänge",
-                done: "y",
-                succeeded: "0",
-                improved: "+",
-                repeat: "A",
-                commentary: "Lief ganz gut"
-            }],
+            dbConn: new DatabaseConnection(),
+            plan_id: 1, // TODO get from props
             headData: {
-                date: "01.01.2020",
-                durationHour: "00",
-                durationMinute: "59",
-                horse: { nick: "Charly" },
-                selectedCategories: [{ id: '1', name: 'Gymnastizierung' }, { id: '2', name: 'Ausreiten' },],
-                goal: "Hier steht ein freier Text."
+                date: null,
+                durationHour: null,
+                durationMinute: null,
+                horse: {id: null, nick: null},
+                selectedCategories:[],
+                goal: null 
             },
             footData: {
-                riderMood: 1,
-                horseMood: 2,
-                commentary: "anything"
+                riderMood: null,
+                horseMood: null,
+                commentary: null
             },
-            dbConn: new DatabaseConnection(),
+            entryData: []
+
         };
 
-        
-        this.state.dbConn.getPlan(1, 
-        (_, result) => {
-            this.setState({headData: result.headData})
-            this.setState({footData: result.footData})
-        }, (tx, error) => {
-            console.log(error)
-            //this.setStateFromDb(null)
-        })
+        this.state.dbConn.getPlanMeta(this.state.plan_id,
+            (_, result) => {
+                this.setState({ headData: result.headData })
+                this.setState({ footData: result.footData })
+                console.log(this.state)
+            }, 
+            (_, error) => {
+                // TODO
+                //this.setStateFromDb(null)
+                console.log(error)
+            })
+
+        this.state.dbConn.getPlanExercises(this.state.plan_id,
+            (_, result) => {
+                this.setState({ entryData: result.entryData })
+            },
+            (_, error) => {
+                // TODO
+                console.log(error)
+            }
+        )
 
 
         // Head Section
@@ -113,34 +90,15 @@ class TrainingPlanPage extends React.Component {
 
     }
 
-    setStateFromDb(rows){
-        if (rows == null){
-            // TODO null initializing empty plan
-            return
-        }
-
-        this.setState({
-            headData: {
-                date: rows.date,
-                durationHour: (Math.floor(rows.duration / 60)).toString(),
-                durationMinute: (rows.duration % 60).toString(),
-                horse: { nick: "Charly" },
-                selectedCategories: [{ id: '1', name: 'Gymnastizierung' }, { id: '2', name: 'Ausreiten' },],
-                goal: rows.goal
-            },
-            footData: {
-                riderMood: rows.riderMood,
-                horseMood: rows.horseMood,
-                commentary: rows.commentary
-            }
-        })
-
-
-    }
 
     // Bottom Action Button
-    saveData() {
-        console.log(this.state)
+    saveData() { //TODO Debug only
+        this.state.dbConn.savePlanMeta(this.state.plan_id, this.state.headData, this.state.footData,
+            () => console.log("ready first part"),
+            (error) => console.log(error))
+        this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData, 
+            () => console.log("ready"),
+            (error) => console.log(error))
     }
 
 
@@ -334,6 +292,8 @@ class TrainingPlanPage extends React.Component {
     }
 
     render() {
+        console.log("From render")
+        console.log(this.state)
         return (
             <View style={styles.tableEntry}>
                 <HeadSection

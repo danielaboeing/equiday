@@ -8,7 +8,7 @@ import styles from '../styles/Main.style.js';
 
 
 export default function HeadSection(props) {
-
+    console.log(props.data)
     return (
         <View style={styles.detailSectionWrapper}>
             <View style={styles.detailSection}>
