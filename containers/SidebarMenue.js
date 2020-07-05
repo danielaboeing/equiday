@@ -33,11 +33,15 @@ class SidebarMenue extends React.Component {
                 <TouchableHighlight onPress={() => this.setState({showHorsesMenu: !this.state.showHorsesMenu})} >
                     <Text style={styles.sidebarMenuItem}>Pferde</Text>
                 </TouchableHighlight>
-                    {this.state.showHorsesMenu && this.state.horses.map((item) => ([
+                    {this.state.showHorsesMenu && [this.state.horses.map((item) => ([
                     <TouchableHighlight key={item.id} onPress={() => Actions.masterDataPage({id: item.id})} >
                             <Text style={styles.sidebarSubItem}>{item.nick}</Text>
                     </TouchableHighlight>,
-                    ]))}
+                    ])), 
+                    <TouchableHighlight key={item.id} onPress={() => console.log("Add Horse")} >
+                        <Text style={styles.sidebarSubItem}>Pferd hinzufügen</Text>
+                    </TouchableHighlight>
+                    ]}
 
                 <TouchableHighlight onPress={() => this.setState({showTrainingMenu: !this.state.showTrainingMenu})} >
                     <Text style={styles.sidebarMenuItem}>Training</Text>

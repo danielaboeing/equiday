@@ -8,6 +8,7 @@ import BottomAction from './BottomAction';
 
 import DatabaseConnection from '../utilities/DatabaseConnection';
 
+
 import styles from '../styles/Main.style.js';
 
 
@@ -15,8 +16,9 @@ class TrainingPlanPage extends React.Component {
 
     constructor() {
         super()
-        const dbconn = new DatabaseConnection()
-        dbconn.prepare()
+
+
+
         // TODO aus DB
         this.state = {
             entryData: [{
@@ -67,8 +69,20 @@ class TrainingPlanPage extends React.Component {
                 riderMood: 1,
                 horseMood: 2,
                 commentary: "anything"
-            }
+            },
+            dbConn: new DatabaseConnection(),
         };
+
+        
+        this.state.dbConn.getPlan(1, 
+        (_, result) => {
+            this.setState({headData: result.headData})
+            this.setState({footData: result.footData})
+        }, (tx, error) => {
+            console.log(error)
+            //this.setStateFromDb(null)
+        })
+
 
         // Head Section
         this.onDateChange = this.onDateChange.bind(this)
@@ -95,6 +109,32 @@ class TrainingPlanPage extends React.Component {
 
         // Bottom Action Button
         this.saveData = this.saveData.bind(this)
+
+
+    }
+
+    setStateFromDb(rows){
+        if (rows == null){
+            // TODO null initializing empty plan
+            return
+        }
+
+        this.setState({
+            headData: {
+                date: rows.date,
+                durationHour: (Math.floor(rows.duration / 60)).toString(),
+                durationMinute: (rows.duration % 60).toString(),
+                horse: { nick: "Charly" },
+                selectedCategories: [{ id: '1', name: 'Gymnastizierung' }, { id: '2', name: 'Ausreiten' },],
+                goal: rows.goal
+            },
+            footData: {
+                riderMood: rows.riderMood,
+                horseMood: rows.horseMood,
+                commentary: rows.commentary
+            }
+        })
+
 
     }
 
@@ -144,8 +184,9 @@ class TrainingPlanPage extends React.Component {
 
     onRemoveCategory(item) {
         this.setState(function (currentState) {
+            currentState.headData.selectedCategories = currentState.headData.selectedCategories.filter((value) => value != item)
             return {
-                selectedCategories: currentState.selectedCategories.filter((value) => value != item)
+                headData: currentState.headData
             }
         })
     }
@@ -163,8 +204,9 @@ class TrainingPlanPage extends React.Component {
             return
         }
         this.setState(function (currentState) {
+            currentState.headData.selectedCategories = currentState.headData.selectedCategories.concat({ id: item, name: catName })
             return {
-                selectedCategories: currentState.selectedCategories.concat({ id: item, name: catName })
+                headData: currentState.headData
             }
         })
     }

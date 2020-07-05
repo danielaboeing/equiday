@@ -12,6 +12,8 @@ import AllExercisesPage from './AllExercisesPage';
 import TrainingPlanOverviewPage from './TrainingPlanOverviewPage';
 import SingleExercisePage from './SingleExercisePage';
 
+
+
 class BasePage extends React.Component {  
 
 constructor(){
