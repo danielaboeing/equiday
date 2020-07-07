@@ -10,6 +10,7 @@
   "dependencies": {
     "@expo-google-fonts/rock-salt": "^0.1.0",
     "@react-native-community/async-storage": "^1.11.0",
+    "@react-native-community/datetimepicker": "^2.5.0",
     "@react-native-community/picker": "^1.6.5",
     "@react-navigation/drawer": "^5.8.4",
     "expo": "^37.0.12",

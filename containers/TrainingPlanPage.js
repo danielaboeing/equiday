@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 
 import HeadSection from './HeadSection';
 import TrainingTable from './TrainingTable';
@@ -61,6 +61,7 @@ class TrainingPlanPage extends React.Component {
         this.onImprovedChange = this.onImprovedChange.bind(this)
         this.onRepeatChange = this.onRepeatChange.bind(this)
         this.onExerciseCommentaryChange = this.onExerciseCommentaryChange.bind(this)
+        this.onExerciseDelete = this.onExerciseDelete.bind(this)
 
         // Foot Section
         this.onRiderMoodChange = this.onRiderMoodChange.bind(this)
@@ -78,11 +79,7 @@ class TrainingPlanPage extends React.Component {
             (_, result) => { 
                 this.setState({ headData: result.headData })
                 this.setState({ footData: result.footData })
-                this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories, 
-                    (_, result) => this.setState({allCurrentExercises: result}),
-                    (_, error) => console.log(error) // TODO debug only
-                ) 
-        
+                
             }, 
             (_, error) => {
                 // TODO
@@ -110,14 +107,23 @@ class TrainingPlanPage extends React.Component {
 
     }
 
+    componentDidUpdate(){
+        this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories, 
+            (_, result) => this.setState({allCurrentExercises: result}),
+            (_, error) => console.log(error) // TODO debug only
+        ) 
+    }
+
+
+
     // Bottom Action Button
-    saveData() { //TODO Debug only
+    saveData() { 
         this.state.dbConn.savePlanMeta(this.state.plan_id, this.state.headData, this.state.footData,
-            () => console.log("ready first part"),
-            (error) => console.log(error))
-        this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData, 
-            () => console.log("ready"),
-            (error) => console.log(error))
+            () => this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData, 
+                () => Alert.alert("Speichern erfolgreich.", "Die Daten wurden erfolgreich gespeichert."),
+                (error) => console.log(error)), //TODO Debug only
+            (error) => console.log(error)) //TODO Debug only
+        
     }
 
 
@@ -220,10 +226,12 @@ class TrainingPlanPage extends React.Component {
     // Training Table
     onExerciseChange(id_old, id_new) {
         this.setState(function (currentState) {
-            //TODO get info from DB with id_new
-            const new_value = id_new
-            currentState.entryData.filter((value) => value.key == id_old).map((value) => value.exercise = new_value)
-            console.log(currentState.entryData.filter((value) => value.key == id_old))
+            currentState.entryData
+                .filter((value) => value.id == id_old)
+                .map((value) => {
+                    value.id = id_new
+                    value.name = this.state.allCurrentExercises.filter((value) => value.id == id_new).name 
+                })
             return {
                 entryData: currentState.entryData
             }
@@ -232,13 +240,11 @@ class TrainingPlanPage extends React.Component {
 
     onExerciseAdd(id) {
         this.setState(function (currentState) {
-            //TODO get info from DB with id_new
-            const name = id
 
             return {
                 entryData: currentState.entryData.concat({
-                    key: id,
-                    exercise: name,
+                    id: id,
+                    name: this.state.allCurrentExercises.filter((value) => value.id == id)[0].name,
                     done: "-1",
                     succeeded: "-1",
                     improved: "-1",
@@ -252,7 +258,7 @@ class TrainingPlanPage extends React.Component {
 
     onDoneChange(newValue, id) {
         this.setState(function (currentState) {
-            currentState.entryData.filter((value) => value.key == id).map((value) => value.done = newValue)
+            currentState.entryData.filter((value) => value.id == id).map((value) => value.done = newValue)
             return {
                 entryData: currentState.entryData
             }
@@ -262,7 +268,7 @@ class TrainingPlanPage extends React.Component {
 
     onSucceededChange(newValue, id) {
         this.setState(function (currentState) {
-            currentState.entryData.filter((value) => value.key == id).map((value) => value.succeeded = newValue)
+            currentState.entryData.filter((value) => value.id == id).map((value) => value.succeeded = newValue)
             return {
                 entryData: currentState.entryData
             }
@@ -272,7 +278,7 @@ class TrainingPlanPage extends React.Component {
 
     onImprovedChange(newValue, id) {
         this.setState(function (currentState) {
-            currentState.entryData.filter((value) => value.key == id).map((value) => value.improved = newValue)
+            currentState.entryData.filter((value) => value.id == id).map((value) => value.improved = newValue)
             return {
                 entryData: currentState.entryData
             }
@@ -282,7 +288,7 @@ class TrainingPlanPage extends React.Component {
 
     onRepeatChange(newValue, id) {
         this.setState(function (currentState) {
-            currentState.entryData.filter((value) => value.key == id).map((value) => value.repeat = newValue)
+            currentState.entryData.filter((value) => value.id == id).map((value) => value.repeat = newValue)
             return {
                 entryData: currentState.entryData
             }
@@ -292,12 +298,20 @@ class TrainingPlanPage extends React.Component {
 
     onExerciseCommentaryChange(newValue, id) {
         this.setState(function (currentState) {
-            currentState.entryData.filter((value) => value.key == id).map((value) => value.commentary = newValue)
+            currentState.entryData.filter((value) => value.id == id).map((value) => value.commentary = newValue)
             return {
                 entryData: currentState.entryData
             }
         })
 
+    }
+
+    onExerciseDelete(id){
+        this.setState((currentState) => {
+            return {
+                entryData: currentState.entryData.filter((value) => value.id != id)
+            }
+        })
     }
 
     render() {
@@ -323,6 +337,7 @@ class TrainingPlanPage extends React.Component {
                     onImprovedChange={this.onImprovedChange}
                     onRepeatChange={this.onRepeatChange}
                     onExerciseCommentaryChange={this.onExerciseCommentaryChange}
+                    onExerciseDelete={this.onExerciseDelete}
                     data={this.state.entryData}
                     allCurrentExercises={this.state.allCurrentExercises}
                 />

@@ -8,35 +8,37 @@ import styles from '../styles/Main.style.js';
 export default class TrainingTable extends React.Component {
 
  
-    renderRow(entry) {
+    renderRow(entry, index) {
         return (
-            <View style={styles.tableEntry} key={entry.key}>
-                <View style={styles.tableRow} key={entry.key + "_title"}>
+            <View style={styles.tableEntry} key={index}>
+                <View style={styles.tableRow} key={index + "_title"}>
                     <View style={styles.tableCell} >
                         <Picker
-                            selectedValue={entry.exercise}
+                            selectedValue={entry.id}
                             style={styles.detailTextEntry}
                             onValueChange={(itemValue) =>
-                                this.props.onExerciseChange(entry.key, itemValue)
+                                this.props.onExerciseChange(entry.id, itemValue)
                             }>
-                            {this.props.allCurrentExercises.map((value) => <Picker.Item style={styles.detailTextEntry} key={value.id} label={value.name} value={value.name} />)}
+                            {this.props.allCurrentExercises.filter((value) => this.props.data.find(x => x.id == value.id) == null || value.id == entry.id).map((value) => 
+                                <Picker.Item style={styles.detailTextEntry} key={value.id} label={value.name} value={value.id} />
+                            )}
                         </Picker>
 
                     </View>
                 </View>
-                {this.renderHead(entry.key)}
-                <View style={styles.tableRow} key={entry.key + "_main"}>
+                {this.renderHead(index)}
+                <View style={styles.tableRow} key={index + "_main"}>
 
                     <View style={styles.tableCell} >
                         <Picker
-                            selectedValue={entry.done}
+                            selectedValue={entry.done.toString()}
                             style={styles.tableEntryText}
                             onValueChange={(itemValue) =>
-                                this.props.onDoneChange(itemValue, entry.key)
+                                this.props.onDoneChange(itemValue, entry.id)
                             }>
+                            <Picker.Item style={styles.tableEntryText} label="--" value="-1" />
                             <Picker.Item style={styles.tableEntryText} label="&#x2713;" value="1" />
                             <Picker.Item style={styles.tableEntryText} label="&#x2717;" value="0" />
-                            <Picker.Item style={styles.tableEntryText} label="--" value="-1" />
                         </Picker>
 
                     </View>
@@ -44,7 +46,7 @@ export default class TrainingTable extends React.Component {
 
 
 
-                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("0", entry.key)}>
+                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("0", entry.id)}>
                             {entry.succeeded === "0" ?
                                 <Image source={require('../assets/selection_pics/traffic_light_green.png')} style={styles.detailImgEntry}></Image>
                                 :
@@ -52,7 +54,7 @@ export default class TrainingTable extends React.Component {
 
                             }
                         </TouchableHighlight>
-                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("1", entry.key)}>
+                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("1", entry.id)}>
                             {entry.succeeded == 1 ?
                                 <Image source={require('../assets/selection_pics/traffic_light_yellow.png')} style={styles.detailImgEntry}></Image>
                                 :
@@ -61,7 +63,7 @@ export default class TrainingTable extends React.Component {
                             }
                         </TouchableHighlight>
 
-                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("2", entry.key)}>
+                        <TouchableHighlight style={styles.trafficLightTouchable} onPress={() => this.props.onSucceededChange("2", entry.id)}>
                             {entry.succeeded == 2 ?
                                 <Image source={require('../assets/selection_pics/traffic_light_red.png')} style={styles.detailImgEntry}></Image>
                                 :
@@ -77,7 +79,7 @@ export default class TrainingTable extends React.Component {
                             selectedValue={entry.improved}
                             style={styles.tableEntryText}
                             onValueChange={(itemValue) =>
-                                this.props.onImprovedChange(itemValue, entry.key)
+                                this.props.onImprovedChange(itemValue, entry.id)
                             }>
                             <Picker.Item style={styles.tableEntryText} label="+" value="+" />
                             <Picker.Item style={styles.tableEntryText} label="=" value="=" />
@@ -91,7 +93,7 @@ export default class TrainingTable extends React.Component {
                             selectedValue={entry.repeat}
                             style={styles.tableEntryText}
                             onValueChange={(itemValue) =>
-                                this.props.onRepeatChange(itemValue, entry.key)
+                                this.props.onRepeatChange(itemValue, entry.id)
                             }>
                             <Picker.Item style={styles.tableEntryText} label="A" value="A" />
                             <Picker.Item style={styles.tableEntryText} label="B" value="B" />
@@ -101,8 +103,15 @@ export default class TrainingTable extends React.Component {
 
                     </View>
                 </View>
-                <View style={styles.tableRow} key={entry.key + "_commentary"} >
-                    <View style={styles.tableCell} ><TextInput onChangeText={(text) => this.props.onExerciseCommentaryChange(text, entry.key)} style={styles.tableEntryText}>{entry.commentary}</TextInput></View>
+                <View style={styles.tableRow} key={index + "_commentary"} >
+                    <View style={styles.tableCell} ><TextInput onChangeText={(text) => this.props.onExerciseCommentaryChange(text, entry.id)} style={styles.tableEntryText}>{entry.commentary}</TextInput></View>
+                </View>
+                <View style={styles.tableRow} key={index + "_foot"} >
+                    <View style={styles.tableCell} >
+                        <TouchableHighlight onPress={() => this.props.onExerciseDelete(entry.id)}>
+                            <Text style={[styles.tableEntryText, {textAlign: "right"}]}>Übung löschen &#x2717;</Text>
+                        </TouchableHighlight>
+                    </View>
                 </View>
                 <View style={styles.tableDelimiter} />
             </View>
@@ -135,7 +144,7 @@ export default class TrainingTable extends React.Component {
 
 
     render() {
-
+        console.log(this.props.allCurrentExercises.filter((value) => this.props.data.find(x => x.id == value.id) != null))
         return (
 
 
@@ -143,8 +152,8 @@ export default class TrainingTable extends React.Component {
                 <View style={styles.table}>
 
                     {
-                        this.props.data.map((datum) => {
-                            return this.renderRow(datum);
+                        this.props.data.map((datum, index) => {
+                            return this.renderRow(datum, index);
                         })
                     }
 
@@ -158,7 +167,7 @@ export default class TrainingTable extends React.Component {
                                 }>
                                 <Picker.Item style={styles.tableEntryText} label="Übung hinzufügen" value="" />
                                 {
-                                    this.props.allCurrentExercises.map((value) => 
+                                    this.props.allCurrentExercises.filter((value) => this.props.data.find(x => x.id == value.id) == null).map((value) => 
                                         <Picker.Item style={styles.tableEntryText} key={value.id} label={value.name} value={value.id} />
                                     )
                                 }

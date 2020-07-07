@@ -1,11 +1,6 @@
 import { openDatabase } from 'expo-sqlite';
 
 
-import * as FileSystem from 'expo-file-system';
-import { Asset } from 'expo-asset';
-
-//import populatedDb from '../data/equiday_db.sqlite';
-
 export default class DatabaseConnection {
 
     //TODO Singleton with prepare
@@ -33,12 +28,6 @@ export default class DatabaseConnection {
                     }
                 )
             },
-            error => {
-                console.log("Transaction error: " + error); // TODO Debug only
-            },
-            () => {
-                console.log("Transaction done "); // TODO debug only
-            }
         )
 
     }
@@ -133,8 +122,16 @@ export default class DatabaseConnection {
         let category_ids = []
         let whereStmt = "";
         if(categories != undefined){
-            categories.map((value) => category_ids.push(value.id))
-            whereStmt += " AND e.category_id = ?"
+            categories.map((value) => {
+                if(whereStmt != ""){
+                    whereStmt += " OR "
+                }
+                else {
+                    whereStmt += " AND "
+                }
+                whereStmt += " e.category_id = ?"
+                category_ids.push(value.id)
+            })
         }
         whereStmt += ";"
 
@@ -230,6 +227,7 @@ export default class DatabaseConnection {
                     [id],
                     (tx, result) => {
                         let jsonResult = {}
+                        console.log(result.rows)
                         if (result.rows.length == 0) {
                             // TODO blank initialize
                         }
@@ -237,7 +235,7 @@ export default class DatabaseConnection {
                             jsonResult.entryData = []
                             result.rows._array.map((value) => {
                                 jsonResult.entryData.push({
-                                    key: value.exercise_id,
+                                    id: value.exercise_id,
                                     exercise: value.exercise_name,
                                     done: value.done,
                                     succeeded: value.succeeded,
@@ -260,7 +258,7 @@ export default class DatabaseConnection {
     savePlanMeta(plan_id, dataHead, dataFoot, onSuccess, onError){
 
         const duration = parseInt(dataHead.durationHour)*60+parseInt(dataHead.durationMinute)
-        /*
+        
         this.db.transaction(
             tx => {
                 tx.executeSql(
@@ -271,7 +269,7 @@ export default class DatabaseConnection {
                     dataHead.goal,
                     dataFoot.riderMood,
                     dataFoot.horseMood,
-                    dataFoot.plan_commentary,
+                    dataFoot.commentary,
                     dataHead.horse.id],
                 )
                 tx.executeSql(
@@ -288,7 +286,7 @@ export default class DatabaseConnection {
             },
             onError,
             onSuccess
-        )*/
+        )
 
     }
 
@@ -296,30 +294,29 @@ export default class DatabaseConnection {
 
     savePlanEntry(plan_id, dataEntry, onSuccess, onError){
 
-        /*
+
         this.db.transaction(
             tx => {
-                dataEntry.map((value) => {
                 tx.executeSql(
                     "DELETE FROM plan_exercise WHERE plan_id = ?;",
                     [plan_id]
                 )
-                tx.executeSql(
+                dataEntry.map((value) => {
+                    tx.executeSql(
                     'INSERT INTO plan_exercise VALUES (?, ?, ?, ?, ?, ?, ?);',
                     [plan_id, 
-                    value.exercise_id, 
+                    value.id, 
                     value.done, 
                     value.succeeded,
                     value.improved,
                     value.repeat,
-                    value.exercise_commentary],
+                    value.commentary],
                 ) }
                 )
             },
             onError,
             onSuccess
         )
-        */
 
     }
 
@@ -333,7 +330,7 @@ export default class DatabaseConnection {
             'INSERT INTO exerciseLookup VALUES(1, 4, "Führübung", "");',
             'INSERT INTO exercise VALUES(NULL, NULL, 3, 5, 0, 1, 0, 0, 2, 5, 1, 1, 0, 0, 1);',
             'INSERT INTO plan_category VALUES(1, 1);',
-            'INSERT INTO plan_exercise VALUES(1, 3, 1, 2, "+", "A", "Das wollte ich unbedingt wiederholen.");'
+            'INSERT INTO plan_exercise VALUES(1, 3, 1, 2, "+", "A", "Das wollte ich unbedingt wiederholen.");',
         ]
 
         this.executeBatch(stmt)

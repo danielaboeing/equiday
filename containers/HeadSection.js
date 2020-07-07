@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableHighlight, TextInput, Picker, FlatList } from 'react-native';
-import DatePicker from 'react-native-datepicker';
+import DatePicker from 'react-native-datepicker'; // @react-native-community/datetimepicker'; //
 
 
 import styles from '../styles/Main.style.js';
