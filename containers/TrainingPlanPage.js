@@ -34,31 +34,14 @@ class TrainingPlanPage extends React.Component {
                 horseMood: null,
                 commentary: null
             },
-            entryData: []
+            entryData: [],
+            allHorses: [],
+            allCategories: [],
+            allCurrentExercises: []
 
-        };
 
-        this.state.dbConn.getPlanMeta(this.state.plan_id,
-            (_, result) => {
-                this.setState({ headData: result.headData })
-                this.setState({ footData: result.footData })
-                console.log(this.state)
-            }, 
-            (_, error) => {
-                // TODO
-                //this.setStateFromDb(null)
-                console.log(error)
-            })
+        }; 
 
-        this.state.dbConn.getPlanExercises(this.state.plan_id,
-            (_, result) => {
-                this.setState({ entryData: result.entryData })
-            },
-            (_, error) => {
-                // TODO
-                console.log(error)
-            }
-        )
 
 
         // Head Section
@@ -90,6 +73,42 @@ class TrainingPlanPage extends React.Component {
 
     }
 
+    componentDidMount(){
+        this.state.dbConn.getPlanMeta(this.state.plan_id,
+            (_, result) => { 
+                this.setState({ headData: result.headData })
+                this.setState({ footData: result.footData })
+                this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories, 
+                    (_, result) => this.setState({allCurrentExercises: result}),
+                    (_, error) => console.log(error) // TODO debug only
+                ) 
+        
+            }, 
+            (_, error) => {
+                // TODO
+                //this.setStateFromDb(null)
+                console.log(error)
+            })
+
+        this.state.dbConn.getPlanExercises(this.state.plan_id,
+            (_, result) => {
+                this.setState({ entryData: result.entryData })
+            },
+            (_, error) => {
+                // TODO
+                console.log(error)
+            }
+        )
+        this.state.dbConn.getAllHorses(
+            (_, result) => this.setState({ allHorses: result }),
+            (_, error) => console.log(error) // TODO debug only
+        )
+        this.state.dbConn.getAllCategories(
+            (_, result) => this.setState({ allCategories: result }),
+            (_, error) => console.log(error) // TODO debug only
+        )
+
+    }
 
     // Bottom Action Button
     saveData() { //TODO Debug only
@@ -131,9 +150,9 @@ class TrainingPlanPage extends React.Component {
 
     }
 
-    onHorseChange(value) {
+    onHorseChange(item) {
         this.setState(function (currentState) {
-            currentState.headData.horse.nick = value
+            currentState.headData.horse = this.state.allHorses.filter((value) => value.id == item)[0]
             return {
                 headData: currentState.headData
             }
@@ -150,19 +169,9 @@ class TrainingPlanPage extends React.Component {
     }
 
     onAddCategory(item) {
-        //TODO get info from DB
-        let catName = "";
-        if (item == "0") {
-            catName = "Western"
-        }
-        else if (item == "1") {
-            catName = "Stangenarbeit"
-        }
-        else {
-            return
-        }
+
         this.setState(function (currentState) {
-            currentState.headData.selectedCategories = currentState.headData.selectedCategories.concat({ id: item, name: catName })
+            currentState.headData.selectedCategories = currentState.headData.selectedCategories.concat(this.state.allCategories.filter((value) => value.id == item))
             return {
                 headData: currentState.headData
             }
@@ -292,8 +301,6 @@ class TrainingPlanPage extends React.Component {
     }
 
     render() {
-        console.log("From render")
-        console.log(this.state)
         return (
             <View style={styles.tableEntry}>
                 <HeadSection
@@ -305,6 +312,8 @@ class TrainingPlanPage extends React.Component {
                     onAddCategory={this.onAddCategory}
                     onGoalChange={this.onGoalChange}
                     data={this.state.headData}
+                    allHorses={this.state.allHorses}
+                    allCategories={this.state.allCategories}
                 />
                 <TrainingTable
                     onExerciseChange={this.onExerciseChange}
@@ -315,6 +324,7 @@ class TrainingPlanPage extends React.Component {
                     onRepeatChange={this.onRepeatChange}
                     onExerciseCommentaryChange={this.onExerciseCommentaryChange}
                     data={this.state.entryData}
+                    allCurrentExercises={this.state.allCurrentExercises}
                 />
                 <FootSection
                     onRiderMoodChange={this.onRiderMoodChange}
@@ -329,7 +339,7 @@ class TrainingPlanPage extends React.Component {
             </View>
         );
     }
-
+ 
 }
 
 export default TrainingPlanPage;

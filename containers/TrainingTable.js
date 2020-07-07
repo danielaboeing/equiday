@@ -7,18 +7,8 @@ import styles from '../styles/Main.style.js';
 
 export default class TrainingTable extends React.Component {
 
+ 
     renderRow(entry) {
-        // TODO aus DB
-        const allExercises = [{
-            id: "1",
-            name: "Schritt-Trab-Übergänge"
-        }, {
-            id: "2",
-            name: "Stangen-Doppel-T"
-        }, {
-            id: "3",
-            name: "Ausreiten"
-        }]
         return (
             <View style={styles.tableEntry} key={entry.key}>
                 <View style={styles.tableRow} key={entry.key + "_title"}>
@@ -29,7 +19,7 @@ export default class TrainingTable extends React.Component {
                             onValueChange={(itemValue) =>
                                 this.props.onExerciseChange(entry.key, itemValue)
                             }>
-                            {allExercises.map((value) => <Picker.Item style={styles.detailTextEntry} key={value.id} label={value.name} value={value.name} />)}
+                            {this.props.allCurrentExercises.map((value) => <Picker.Item style={styles.detailTextEntry} key={value.id} label={value.name} value={value.name} />)}
                         </Picker>
 
                     </View>
@@ -122,7 +112,7 @@ export default class TrainingTable extends React.Component {
     }
 
     renderHead(key) {
-        const head = {
+        const head = { 
             exercise: "Übung",
             done: "Erledigt?",
             succeeded: "Gelungen?",
@@ -167,8 +157,11 @@ export default class TrainingTable extends React.Component {
                                     this.props.onExerciseAdd(itemValue)
                                 }>
                                 <Picker.Item style={styles.tableEntryText} label="Übung hinzufügen" value="" />
-                                <Picker.Item style={styles.tableEntryText} label="Schritt-Galopp-Übergänge" value="Schritt-Galopp-Übergänge" />
-                                <Picker.Item style={styles.tableEntryText} label="Ausreiten" value="Ausreiten" />
+                                {
+                                    this.props.allCurrentExercises.map((value) => 
+                                        <Picker.Item style={styles.tableEntryText} key={value.id} label={value.name} value={value.id} />
+                                    )
+                                }
                             </Picker>
                         </View>
                     </View>

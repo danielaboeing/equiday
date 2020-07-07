@@ -75,6 +75,99 @@ export default class DatabaseConnection {
         )
     }
 
+    getAllHorses(onSuccess, onError){
+
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    "SELECT * FROM horse;",
+                    [],
+                    (tx, result) => {
+                        let allHorses = []
+                        if(result.rows.length == 0){
+                            // TODO
+                        }
+                        else {
+                            result.rows._array.map((value) => {
+                                allHorses.push({id: value.horse_id, name: value.nick})
+                            })
+                        }
+                        onSuccess(tx, allHorses)
+                    },
+                    onError
+                )
+            }
+        )
+
+    }
+
+    getAllCategories(onSuccess, onError){
+        
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    `SELECT * FROM categoryLookup
+                    WHERE language_id = 1;`, // TODO Sprache flexibel
+                    [],
+                    (tx, result) => {
+                        let allCategories = []
+                        if(result.rows.length == 0){
+                            // TODO
+                        }
+                        else {
+                            result.rows._array.map((value) => {
+                                allCategories.push({id: value.category_id, name: value.category_name})
+                            })
+                        }
+                        onSuccess(tx, allCategories)
+                    },
+                    onError
+                )
+            }
+        )
+
+    }
+
+    getAllExercisesByCategory(categories, onSuccess, onError){
+        
+        let category_ids = []
+        let whereStmt = "";
+        if(categories != undefined){
+            categories.map((value) => category_ids.push(value.id))
+            whereStmt += " AND e.category_id = ?"
+        }
+        whereStmt += ";"
+
+
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    `SELECT * FROM exercise e
+                    INNER JOIN exerciseLookup el
+                    ON e.exercise_id = el.exercise_id
+                    WHERE el.language_id = 1` + whereStmt, // TODO flexibel für Sprache gestalten
+                    category_ids,
+                    (tx, result) => {
+                        let allExercises = []
+                        if(result.rows.length == 0){
+                            // TODO
+                        }
+                        else {
+                            result.rows._array.map((value) => {
+                                allExercises.push({id: value.exercise_id, name: value.exercise_name})
+                            })
+                        }
+                        onSuccess(tx, allExercises)
+                    },
+                    onError
+                )
+            }
+        )
+
+    }
+
+
+
     getPlanMeta(id, onSuccess, onError) {
         this.db.transaction(
             tx => {
@@ -97,9 +190,9 @@ export default class DatabaseConnection {
                         else {
                             let entry = result.rows.item(0)
                             let selectedCategories = []
-                            result.rows._array.map((value) => { selectedCategories.push({ id: value.category_id, name: value.category_name }) })
+                            result.rows._array.map((value) => { selectedCategories.push({ id: value.category_id.toString(), name: value.category_name }) })
                             jsonResult.headData = {
-                                date: entry.date,
+                                date: entry.date, 
                                 durationHour: (Math.floor(entry.duration / 60)).toString(),
                                 durationMinute: (entry.duration % 60).toString(),
                                 horse: { nick: entry.nick, id: entry.horse_id },
@@ -150,7 +243,7 @@ export default class DatabaseConnection {
                                     succeeded: value.succeeded,
                                     improved: value.improved,
                                     repeat: value.repeat,
-                                    commentary: value.exercise_commentar
+                                    commentary: value.exercise_commentary
                                 })
                             })
                         }
@@ -166,7 +259,8 @@ export default class DatabaseConnection {
 
     savePlanMeta(plan_id, dataHead, dataFoot, onSuccess, onError){
 
-        const duration = dataHead.durationHour*60+dataHead.durationMinute
+        const duration = parseInt(dataHead.durationHour)*60+parseInt(dataHead.durationMinute)
+        /*
         this.db.transaction(
             tx => {
                 tx.executeSql(
@@ -180,9 +274,13 @@ export default class DatabaseConnection {
                     dataFoot.plan_commentary,
                     dataHead.horse.id],
                 )
+                tx.executeSql(
+                    "DELETE FROM plan_category WHERE plan_id = ?;",
+                    [plan_id]
+                )
                 dataHead.selectedCategories.map((value) =>
                 tx.executeSql(
-                    "INSERT OR REPLACE INTO plan_category VALUES(?, ?);",
+                    "INSERT INTO plan_category VALUES(?, ?);",
                     [plan_id,
                     value.id],
                 )
@@ -190,7 +288,7 @@ export default class DatabaseConnection {
             },
             onError,
             onSuccess
-        )
+        )*/
 
     }
 
@@ -198,12 +296,16 @@ export default class DatabaseConnection {
 
     savePlanEntry(plan_id, dataEntry, onSuccess, onError){
 
+        /*
         this.db.transaction(
             tx => {
                 dataEntry.map((value) => {
-                console.log(value)
                 tx.executeSql(
-                    'INSERT OR REPLACE INTO plan_exercise VALUES (?, ?, ?, ?, ?, ?, ?);',
+                    "DELETE FROM plan_exercise WHERE plan_id = ?;",
+                    [plan_id]
+                )
+                tx.executeSql(
+                    'INSERT INTO plan_exercise VALUES (?, ?, ?, ?, ?, ?, ?);',
                     [plan_id, 
                     value.exercise_id, 
                     value.done, 
@@ -217,6 +319,7 @@ export default class DatabaseConnection {
             onError,
             onSuccess
         )
+        */
 
     }
 
@@ -225,13 +328,15 @@ export default class DatabaseConnection {
     insertPlaceholderData() {
         const stmt = [
             'INSERT INTO horse VALUES(NULL, "Pedro", "Charly", NULL, "18.08.2011", "g", NULL, 156, 527, NULL, NULL, NULL, NULL, "");',
-            'INSERT INTO plan VALUES(NULL, "02.07.2020", 75, "", NULL, NULL, "", 1);',
+            'INSERT INTO horse VALUES(NULL, "Snowwhite", "Snow", NULL, "18.08.2011", "g", NULL, 156, 527, NULL, NULL, NULL, NULL, "");',
+            'INSERT INTO plan VALUES(NULL, "02.07.2020", 75, "Hinterhand aktivieren", 2, 3, "Lief relativ gut...", 1);',
+            'INSERT INTO exerciseLookup VALUES(1, 4, "Führübung", "");',
+            'INSERT INTO exercise VALUES(NULL, NULL, 3, 5, 0, 1, 0, 0, 2, 5, 1, 1, 0, 0, 1);',
             'INSERT INTO plan_category VALUES(1, 1);',
-            'INSERT INTO plan_exercise VALUES(1, 3, NULL, NULL, NULL, NULL, "Das wollte ich unbedingt wiederholen.");'
+            'INSERT INTO plan_exercise VALUES(1, 3, 1, 2, "+", "A", "Das wollte ich unbedingt wiederholen.");'
         ]
 
         this.executeBatch(stmt)
-
     }
 
 
@@ -240,7 +345,7 @@ export default class DatabaseConnection {
         const exercisesStmt = [
             'INSERT INTO exercise VALUES(NULL, NULL, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 0, 0, 3);',
             'INSERT INTO exerciseLookup VALUES(1, 1, "Acht", "Die Verbindung zweier Volten zu einer an einem Stück gerittenen Hufschlagfigur in Form einer Acht.");',
-            'INSERT INTO exercise VALUES(NULL, NULL, 3, 5, 0, 1, 0, 0, 2, 5, 1, 1, 0, 0, 8);',
+            'INSERT INTO exercise VALUES(NULL, NULL, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 0, 0, 3);',
             'INSERT INTO exerciseLookup VALUES(1, 2, "Handpferd", "Typischerweise im Gelände: Ein Pferd wird geritten, während das andere, zum Beispiel am Halfter, als Handpferd mitgenommen wird.");',
             'INSERT INTO exercise VALUES(NULL, NULL, 1, 3, 3, 2, 2, 1, 2, 3, 1, 2, 0, 0, 3);',
             'INSERT INTO exerciseLookup VALUES(1, 3, "Angaloppieren", "Der Übergang aus dem Halten oder aus dem Rückwärtsrichten, dem Schritt oder Trab in den Galopp.");',
