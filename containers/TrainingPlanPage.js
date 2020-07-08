@@ -20,7 +20,7 @@ class TrainingPlanPage extends React.Component {
 
         this.state = {
             dbConn: new DatabaseConnection(),
-            plan_id: props.plan_id,
+            plan_id: 1, //props.plan_id,
             headData: {
                 date: null,
                 durationHour: null,
@@ -84,6 +84,11 @@ class TrainingPlanPage extends React.Component {
             (_, result) => this.setState({ allCategories: result }),
             (_, error) => console.log(error) // TODO debug only
         )
+        this.state.dbConn.getAllExercises(
+            (_, result) => this.setState({ allExercises: result }),
+            (_, error) => console.log(error) // TODO debug only
+        )
+
         this.getPlanData()
     }
 
@@ -91,8 +96,16 @@ class TrainingPlanPage extends React.Component {
         if (this.state.plan_id) {
             this.state.dbConn.getPlanMeta(this.state.plan_id,
                 (_, result) => {
-                    this.setState({ headData: result.headData })
-                    this.setState({ footData: result.footData })
+                    this.setState((currentState) => {
+                        return {
+                        headData: result.headData,
+                        footData: result.footData,
+                        allCurrentExercises: currentState.allExercises
+                        .filter((value) =>
+                        result.headData.selectedCategories
+                        .find(x => x.id == value.category_id) != null)
+                        }
+                    })
 
                 },
                 (_, error) => {
@@ -112,15 +125,6 @@ class TrainingPlanPage extends React.Component {
         }
     }
 
-    componentDidUpdate() {
-        if (this.state.headData.selectedCategories.length != 0) {
-            this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories,
-                (_, result) => this.setState({ allCurrentExercises: result }),
-                (_, error) => console.log(error) // TODO debug only
-            )
-
-        }
-    }
 
 
 
@@ -190,7 +194,12 @@ class TrainingPlanPage extends React.Component {
             this.setState(function (currentState) {
                 currentState.headData.selectedCategories = currentState.headData.selectedCategories.filter((value) => value != item)
                 return {
-                    headData: currentState.headData
+                    headData: currentState.headData,
+                    allCurrentExercises: currentState.allExercises
+                    .filter((value) =>
+                    currentState.headData.selectedCategories
+                    .find(x => x.id == value.category_id) != null)
+
                 }
             })
 
@@ -202,7 +211,12 @@ class TrainingPlanPage extends React.Component {
         this.setState(function (currentState) {
             currentState.headData.selectedCategories = currentState.headData.selectedCategories.concat(this.state.allCategories.filter((value) => value.id == item))
             return {
-                headData: currentState.headData
+                headData: currentState.headData,
+                allCurrentExercises: currentState.allExercises
+                .filter((value) =>
+                currentState.headData.selectedCategories
+                .find(x => x.id == value.category_id) != null)
+
             }
         })
     }

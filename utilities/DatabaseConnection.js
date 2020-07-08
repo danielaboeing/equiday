@@ -117,34 +117,16 @@ export default class DatabaseConnection {
 
     }
 
-    getAllExercisesByCategory(categories, onSuccess, onError){
+    getAllExercises(onSuccess, onError){
         
-        let category_ids = []
-        let whereStmt = "";
-        if(categories.length > 0){
-            categories.map((value) => {
-                if(value.id != null){
-                    if(whereStmt != ""){
-                        whereStmt += " OR "
-                    }
-                    else {
-                        whereStmt += " AND "
-                    }
-                    whereStmt += " e.category_id = ?"
-                    category_ids.push(value.id)
-    
-                }
-            })
-        }
-        whereStmt += ";"
         this.db.transaction(
             tx => {
                 tx.executeSql(
                     `SELECT * FROM exercise e
                     INNER JOIN exerciseLookup el
                     ON e.exercise_id = el.exercise_id
-                    WHERE el.language_id = 1` + whereStmt, // TODO flexibel für Sprache gestalten
-                    category_ids,
+                    WHERE el.language_id = 1`, // TODO flexibel für Sprache gestalten
+                    [],
                     (tx, result) => {
                         let allExercises = []
                         if(result.rows.length == 0){

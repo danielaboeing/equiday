@@ -1,13 +1,21 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import {Calendar, Agenda, CalendarList} from 'react-native-calendars';
 
-function TrainingPlanOverviewPage() {
+class TrainingPlanOverviewPage extends React.Component {
+
+  constructor(){
+    super()
+  }
+
+  render(){
     return (
-        <View>
-            <Text>TrainingPlanOverviewPage Area</Text>
-        </View>
+      <Calendar 
+        onDayPress={(day) => console.log(day)} 
+      />
         
     );
+    }
 }
 
 export default TrainingPlanOverviewPage;

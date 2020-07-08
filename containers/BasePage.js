@@ -30,11 +30,11 @@ constructor(){
                 navBar = {NavigationBar}                
             >
                 <Stack>
-                    <Scene key="frontPage" component ={FrontPage} title="Startseite"  />
+                    <Scene key="frontPage" component ={FrontPage} title="Startseite" />
                     <Scene key="masterDataPage" component ={MasterDataPage} title="Stammdaten"  />
-                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen" initial  />
+                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen"  initial />
                     <Scene key="allExercisesPage" component ={AllExercisesPage} title="Trainings"  />
-                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne"  />
+                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne" />
                     <Scene key="singleExercisePage" component ={SingleExercisePage} title="Übungsübersicht"  />
                 </Stack>
             </Drawer>
