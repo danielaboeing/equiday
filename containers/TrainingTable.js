@@ -31,7 +31,7 @@ export default class TrainingTable extends React.Component {
 
                     <View style={styles.tableCell} >
                         <Picker
-                            selectedValue={entry.done.toString()}
+                            selectedValue={entry.done? entry.done.toString() : -1}
                             style={styles.tableEntryText}
                             onValueChange={(itemValue) =>
                                 this.props.onDoneChange(itemValue, entry.id)
@@ -144,7 +144,6 @@ export default class TrainingTable extends React.Component {
 
 
     render() {
-        console.log(this.props.allCurrentExercises.filter((value) => this.props.data.find(x => x.id == value.id) != null))
         return (
 
 

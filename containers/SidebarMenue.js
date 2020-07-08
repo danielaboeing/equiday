@@ -38,7 +38,7 @@ class SidebarMenue extends React.Component {
                             <Text style={styles.sidebarSubItem}>{item.nick}</Text>
                     </TouchableHighlight>,
                     ])), 
-                    <TouchableHighlight key={item.id} onPress={() => console.log("Add Horse")} >
+                    <TouchableHighlight key="addHorse" onPress={() => console.log("Add Horse")} >
                         <Text style={styles.sidebarSubItem}>Pferd hinzufügen</Text>
                     </TouchableHighlight>
                     ]}

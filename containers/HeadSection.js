@@ -76,7 +76,7 @@ export default class HeadSection extends React.Component {
                         }>
                         <Picker.Item style={styles.detailTextEntry} label="Kategorie hinzufügen &#x2795;" value="" />
                         {
-                            this.props.allCategories.map((value) => 
+                            this.props.allCategories.filter((value) => this.props.data.selectedCategories.find(x => x.id == value.id) == null).map((value) => 
                                 <Picker.Item style={styles.detailTextEntry} key={value.id} label={value.name} value={value.id.toString()} />
                             )
                         }

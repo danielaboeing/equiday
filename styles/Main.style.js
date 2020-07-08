@@ -67,6 +67,10 @@ export default StyleSheet.create({
         color: textColor,
         fontSize: 18
     },
+    wrapper: {
+        flex: 1,
+        marginBottom: 50
+    },
     tableRow: {
         alignSelf: 'stretch',
         flexDirection: 'row',
@@ -132,10 +136,16 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        left: 0,
     },
     bottomActionBtn: {
         flex: 1,
-        padding: 10
+        padding: 10,
+
+
     },
     bottomDelimiter: {
         borderLeftWidth: 1,

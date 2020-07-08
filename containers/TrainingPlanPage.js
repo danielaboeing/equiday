@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Text } from 'react-native';
 
 import HeadSection from './HeadSection';
 import TrainingTable from './TrainingTable';
@@ -15,19 +15,19 @@ import styles from '../styles/Main.style.js';
 class TrainingPlanPage extends React.Component {
 
 
-    constructor() {
+    constructor(props) {
         super()
 
         this.state = {
             dbConn: new DatabaseConnection(),
-            plan_id: 1, // TODO get from props
+            plan_id: props.plan_id,
             headData: {
                 date: null,
                 durationHour: null,
                 durationMinute: null,
-                horse: {id: null, nick: null},
-                selectedCategories:[],
-                goal: null 
+                horse: { id: null, nick: null },
+                selectedCategories: [],
+                goal: null
             },
             footData: {
                 riderMood: null,
@@ -40,7 +40,7 @@ class TrainingPlanPage extends React.Component {
             allCurrentExercises: []
 
 
-        }; 
+        };
 
 
 
@@ -70,32 +70,12 @@ class TrainingPlanPage extends React.Component {
 
         // Bottom Action Button
         this.saveData = this.saveData.bind(this)
+        this.createPlan = this.createPlan.bind(this)
 
 
     }
 
-    componentDidMount(){
-        this.state.dbConn.getPlanMeta(this.state.plan_id,
-            (_, result) => { 
-                this.setState({ headData: result.headData })
-                this.setState({ footData: result.footData })
-                
-            }, 
-            (_, error) => {
-                // TODO
-                //this.setStateFromDb(null)
-                console.log(error)
-            })
-
-        this.state.dbConn.getPlanExercises(this.state.plan_id,
-            (_, result) => {
-                this.setState({ entryData: result.entryData })
-            },
-            (_, error) => {
-                // TODO
-                console.log(error)
-            }
-        )
+    componentDidMount() {
         this.state.dbConn.getAllHorses(
             (_, result) => this.setState({ allHorses: result }),
             (_, error) => console.log(error) // TODO debug only
@@ -104,28 +84,65 @@ class TrainingPlanPage extends React.Component {
             (_, result) => this.setState({ allCategories: result }),
             (_, error) => console.log(error) // TODO debug only
         )
-
+        this.getPlanData()
     }
 
-    componentDidUpdate(){
-        this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories, 
-            (_, result) => this.setState({allCurrentExercises: result}),
-            (_, error) => console.log(error) // TODO debug only
-        ) 
+    getPlanData() {
+        if (this.state.plan_id) {
+            this.state.dbConn.getPlanMeta(this.state.plan_id,
+                (_, result) => {
+                    this.setState({ headData: result.headData })
+                    this.setState({ footData: result.footData })
+
+                },
+                (_, error) => {
+                    // TODO
+                    console.log(error)
+                })
+
+            this.state.dbConn.getPlanExercises(this.state.plan_id,
+                (_, result) => {
+                    this.setState({ entryData: result.entryData })
+                },
+                (_, error) => {
+                    // TODO
+                    console.log(error)
+                }
+            )
+        }
+    }
+
+    componentDidUpdate() {
+        if (this.state.headData.selectedCategories.length != 0) {
+            this.state.dbConn.getAllExercisesByCategory(this.state.headData.selectedCategories,
+                (_, result) => this.setState({ allCurrentExercises: result }),
+                (_, error) => console.log(error) // TODO debug only
+            )
+
+        }
     }
 
 
 
     // Bottom Action Button
-    saveData() { 
+    saveData() {
         this.state.dbConn.savePlanMeta(this.state.plan_id, this.state.headData, this.state.footData,
-            () => this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData, 
+            () => this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData,
                 () => Alert.alert("Speichern erfolgreich.", "Die Daten wurden erfolgreich gespeichert."),
                 (error) => console.log(error)), //TODO Debug only
             (error) => console.log(error)) //TODO Debug only
-        
+
     }
 
+    createPlan() {
+        this.state.dbConn.createPlan(
+            (_, result) => {
+                this.setState({ plan_id: result })
+                this.getPlanData()
+            },
+            (_, error) => console.log(error) // TODO debug only
+        )
+    }
 
     // Head Section
     onDateChange(value) {
@@ -166,12 +183,18 @@ class TrainingPlanPage extends React.Component {
     }
 
     onRemoveCategory(item) {
-        this.setState(function (currentState) {
-            currentState.headData.selectedCategories = currentState.headData.selectedCategories.filter((value) => value != item)
-            return {
-                headData: currentState.headData
-            }
-        })
+        if (this.state.entryData.find(x => x.category_id == item.id) != null) {
+            Alert.alert("Fehler", "Vor Löschung der Kategorie bitte erst alle zugehörigen Übungen löschen.")
+        }
+        else {
+            this.setState(function (currentState) {
+                currentState.headData.selectedCategories = currentState.headData.selectedCategories.filter((value) => value != item)
+                return {
+                    headData: currentState.headData
+                }
+            })
+
+        }
     }
 
     onAddCategory(item) {
@@ -230,7 +253,8 @@ class TrainingPlanPage extends React.Component {
                 .filter((value) => value.id == id_old)
                 .map((value) => {
                     value.id = id_new
-                    value.name = this.state.allCurrentExercises.filter((value) => value.id == id_new).name 
+                    value.name = this.state.allCurrentExercises.filter((value) => value.id == id_new)[0].name
+                    value.category_id = this.state.allCurrentExercises.filter((value) => value.id == id_new)[0].category_id
                 })
             return {
                 entryData: currentState.entryData
@@ -238,18 +262,18 @@ class TrainingPlanPage extends React.Component {
         })
     }
 
-    onExerciseAdd(id) {
+    onExerciseAdd(id_new) {
         this.setState(function (currentState) {
-
             return {
                 entryData: currentState.entryData.concat({
-                    id: id,
-                    name: this.state.allCurrentExercises.filter((value) => value.id == id)[0].name,
+                    id: id_new,
+                    name: this.state.allCurrentExercises.filter((value) => value.id == id_new)[0].name,
                     done: "-1",
                     succeeded: "-1",
                     improved: "-1",
                     repeat: "-1",
-                    commentary: ""
+                    commentary: "",
+                    category_id: this.state.allCurrentExercises.filter((value) => value.id == id_new)[0].category_id
                 })
             }
         })
@@ -306,7 +330,7 @@ class TrainingPlanPage extends React.Component {
 
     }
 
-    onExerciseDelete(id){
+    onExerciseDelete(id) {
         this.setState((currentState) => {
             return {
                 entryData: currentState.entryData.filter((value) => value.id != id)
@@ -315,46 +339,63 @@ class TrainingPlanPage extends React.Component {
     }
 
     render() {
+        if (this.state.plan_id) {
+            return (
+                <View style={{ flex: 1 }}>
+                    <View style={styles.wrapper}>
+                        <HeadSection
+                            onDateChange={this.onDateChange}
+                            onDurationHourChange={this.onDurationHourChange}
+                            onDurationMinuteChange={this.onDurationMinuteChange}
+                            onHorseChange={this.onHorseChange}
+                            onRemoveCategory={this.onRemoveCategory}
+                            onAddCategory={this.onAddCategory}
+                            onGoalChange={this.onGoalChange}
+                            data={this.state.headData}
+                            allHorses={this.state.allHorses}
+                            allCategories={this.state.allCategories}
+                        />
+                        <TrainingTable
+                            onExerciseChange={this.onExerciseChange}
+                            onExerciseAdd={this.onExerciseAdd}
+                            onDoneChange={this.onDoneChange}
+                            onSucceededChange={this.onSucceededChange}
+                            onImprovedChange={this.onImprovedChange}
+                            onRepeatChange={this.onRepeatChange}
+                            onExerciseCommentaryChange={this.onExerciseCommentaryChange}
+                            onExerciseDelete={this.onExerciseDelete}
+                            data={this.state.entryData}
+                            allCurrentExercises={this.state.allCurrentExercises}
+                        />
+                        <FootSection
+                            onRiderMoodChange={this.onRiderMoodChange}
+                            onHorseMoodChange={this.onHorseMoodChange}
+                            onCommentaryChange={this.onCommentaryChange}
+                            data={this.state.footData}
+                        />
+                    </View>
+                    <BottomAction
+                        textPrimary="Speichern"
+                        onClickActionPrimary={this.saveData}
+                    />
+                </View>
+
+            );
+        }
         return (
-            <View style={styles.tableEntry}>
-                <HeadSection
-                    onDateChange={this.onDateChange}
-                    onDurationHourChange={this.onDurationHourChange}
-                    onDurationMinuteChange={this.onDurationMinuteChange}
-                    onHorseChange={this.onHorseChange}
-                    onRemoveCategory={this.onRemoveCategory}
-                    onAddCategory={this.onAddCategory}
-                    onGoalChange={this.onGoalChange}
-                    data={this.state.headData}
-                    allHorses={this.state.allHorses}
-                    allCategories={this.state.allCategories}
-                />
-                <TrainingTable
-                    onExerciseChange={this.onExerciseChange}
-                    onExerciseAdd={this.onExerciseAdd}
-                    onDoneChange={this.onDoneChange}
-                    onSucceededChange={this.onSucceededChange}
-                    onImprovedChange={this.onImprovedChange}
-                    onRepeatChange={this.onRepeatChange}
-                    onExerciseCommentaryChange={this.onExerciseCommentaryChange}
-                    onExerciseDelete={this.onExerciseDelete}
-                    data={this.state.entryData}
-                    allCurrentExercises={this.state.allCurrentExercises}
-                />
-                <FootSection
-                    onRiderMoodChange={this.onRiderMoodChange}
-                    onHorseMoodChange={this.onHorseMoodChange}
-                    onCommentaryChange={this.onCommentaryChange}
-                    data={this.state.footData}
-                />
+            <View style={{ flex: 1 }}>
+                <View style={styles.wrapper}>
+                    <Text>Kein Plan ausgewählt.</Text>
+                </View>
                 <BottomAction
-                    textPrimary="Speichern"
-                    onClickActionPrimary={this.saveData}
+                    textPrimary="Neuen Plan erstellen"
+                    onClickActionPrimary={this.createPlan}
                 />
             </View>
-        );
+        )
+
     }
- 
+
 }
 
 export default TrainingPlanPage;
