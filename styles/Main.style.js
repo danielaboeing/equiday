@@ -7,6 +7,7 @@ const normalFont = "Roboto";
 const bgColor = '#6AA95B';
 const bgColorAlt = '#C6EBBD';
 const highlightColor = '#FFFFFF';
+const borderColorAlt = '#CBCBCB';
 
 export default StyleSheet.create({
 
@@ -171,7 +172,40 @@ export default StyleSheet.create({
         borderColor: bgColor,
         borderWidth: 1,
         padding: 5
+    },
+    imageTextContainer: {
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+    },
+    imageText: {
+        fontFamily: specialFont,
+        textAlign: 'center'
+    },
+    tableImage: {
+        opacity: 0.5,
+        width: '100%',
+        height: 150,
+        resizeMode: 'cover', //ontain'
+        margin: 0
+    },
+    exerciseTable: {
+        borderWidth: 0, 
+        margin: 0, 
+    },
+    exerciseEntryWrapper: {
+        margin: 10, 
+        borderWidth: 1, 
+        borderColor: borderColorAlt, 
+        padding: 20
+    },
+    exerciseEntry: {
+        fontFamily: normalFont,
+        fontSize: 18,
     }
- 
 
 });

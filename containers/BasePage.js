@@ -10,7 +10,7 @@ import TrainingPlanPage from './TrainingPlanPage';
 import AllExercisesPage from './AllExercisesPage';
 import TrainingPlanOverviewPage from './TrainingPlanOverviewPage';
 import SingleExercisePage from './SingleExercisePage';
-
+import ExercisesByCategoryPage from './ExercisesByCategoryPage';
 
 
 class BasePage extends React.Component {  
@@ -32,8 +32,9 @@ constructor(){
                     <Scene key="frontPage" component ={FrontPage} title="Startseite" />
                     <Scene key="masterDataPage" component ={MasterDataPage} title="Stammdaten"  />
                     <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen" />
-                    <Scene key="allExercisesPage" component ={AllExercisesPage} title="Trainings"  />
-                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne" initial />
+                    <Scene key="allExercisesPage" component ={AllExercisesPage} title="Trainings"  initial />
+                    <Scene key="exercisesByCategoryPage" component = {ExercisesByCategoryPage} title="Trainings" />
+                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne"  />
                     <Scene key="singleExercisePage" component ={SingleExercisePage} title="Übungsübersicht"  />
                 </Stack>
             </Drawer>

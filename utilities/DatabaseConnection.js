@@ -308,11 +308,30 @@ export default class DatabaseConnection {
         )
     }
 
-
+    getExercisesByCategory(category_id, onSuccess, onError){
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    "SELECT * FROM exercise e \
+                    INNER JOIN exerciseLookup el \
+                    ON e.exercise_id = el.exercise_id \
+                    WHERE e.category_id = ? AND \
+                    el.language_id = 1;", // TODO Sprache
+                    [category_id],
+                    (tx, result) => {
+                        let exercises = []
+                        result.rows._array.forEach(element => {
+                           exercises.push({id: element.exercise_id, name: element.exercise_name}) 
+                        });
+                        onSuccess(tx, exercises)
+                    },
+                    onError
+                )
+            }
+        )
+    }
 
     savePlanEntry(plan_id, dataEntry, onSuccess, onError){
-
-        console.log("entered")
 
         this.db.transaction(
             tx => {
@@ -406,8 +425,6 @@ export default class DatabaseConnection {
             'DROP TABLE IF EXISTS exercise;',
             'DROP TABLE IF EXISTS repetitionIntervall;',
             'DROP TABLE IF EXISTS reminder;',
-            'DROP TABLE IF EXISTS sizeByUnitLookup;', // deprecated
-            'DROP TABLE IF EXISTS generalSizeLookup;', // deprecated
             'DROP TABLE IF EXISTS sizeLookup;',
             'DROP TABLE IF EXISTS horse;',
             'DROP TABLE IF EXISTS categoryLookup;',
