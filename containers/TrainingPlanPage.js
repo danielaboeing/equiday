@@ -18,11 +18,12 @@ class TrainingPlanPage extends React.Component {
     constructor(props) {
         super()
 
+
         this.state = {
             dbConn: new DatabaseConnection(),
-            plan_id: 1, //props.plan_id,
+            plan_id: props.plan_id,
             headData: {
-                date: null,
+                date: props.date,
                 durationHour: null,
                 durationMinute: null,
                 horse: { id: null, nick: null },
@@ -41,6 +42,7 @@ class TrainingPlanPage extends React.Component {
 
 
         };
+
 
 
 
@@ -75,6 +77,20 @@ class TrainingPlanPage extends React.Component {
 
     }
 
+    setPredefinedValues(){
+        if(this.props.date){
+            this.setState((currentState) => {
+                currentState.headData.date = this.props.date
+                return {
+                    headData: currentState.headData
+                }
+            })
+        }
+        if(this.props.horse_id){
+            //TODO
+        }
+    }
+
     componentDidMount() {
         this.state.dbConn.getAllHorses(
             (_, result) => this.setState({ allHorses: result }),
@@ -89,7 +105,14 @@ class TrainingPlanPage extends React.Component {
             (_, error) => console.log(error) // TODO debug only
         )
 
+        if(this.props.date){
+            this.createPlan()
+            this.setPredefinedValues()
+
+        }
         this.getPlanData()
+
+
     }
 
     getPlanData() {
@@ -98,12 +121,12 @@ class TrainingPlanPage extends React.Component {
                 (_, result) => {
                     this.setState((currentState) => {
                         return {
-                        headData: result.headData,
-                        footData: result.footData,
-                        allCurrentExercises: currentState.allExercises
-                        .filter((value) =>
-                        result.headData.selectedCategories
-                        .find(x => x.id == value.category_id) != null)
+                            headData: result.headData,
+                            footData: result.footData,
+                            allCurrentExercises: currentState.allExercises
+                                .filter((value) =>
+                                    result.headData.selectedCategories
+                                        .find(x => x.id == value.category_id) != null)
                         }
                     })
 
@@ -130,19 +153,19 @@ class TrainingPlanPage extends React.Component {
 
     // Bottom Action Button
     saveData() {
+        
         this.state.dbConn.savePlanMeta(this.state.plan_id, this.state.headData, this.state.footData,
             () => this.state.dbConn.savePlanEntry(this.state.plan_id, this.state.entryData,
                 () => Alert.alert("Speichern erfolgreich.", "Die Daten wurden erfolgreich gespeichert."),
                 (error) => console.log(error)), //TODO Debug only
             (error) => console.log(error)) //TODO Debug only
-
+        
     }
 
     createPlan() {
         this.state.dbConn.createPlan(
             (_, result) => {
                 this.setState({ plan_id: result })
-                this.getPlanData()
             },
             (_, error) => console.log(error) // TODO debug only
         )
@@ -196,9 +219,9 @@ class TrainingPlanPage extends React.Component {
                 return {
                     headData: currentState.headData,
                     allCurrentExercises: currentState.allExercises
-                    .filter((value) =>
-                    currentState.headData.selectedCategories
-                    .find(x => x.id == value.category_id) != null)
+                        .filter((value) =>
+                            currentState.headData.selectedCategories
+                                .find(x => x.id == value.category_id) != null)
 
                 }
             })
@@ -213,9 +236,9 @@ class TrainingPlanPage extends React.Component {
             return {
                 headData: currentState.headData,
                 allCurrentExercises: currentState.allExercises
-                .filter((value) =>
-                currentState.headData.selectedCategories
-                .find(x => x.id == value.category_id) != null)
+                    .filter((value) =>
+                        currentState.headData.selectedCategories
+                            .find(x => x.id == value.category_id) != null)
 
             }
         })

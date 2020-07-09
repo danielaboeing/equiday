@@ -157,5 +157,21 @@ export default StyleSheet.create({
         textAlign: 'center',
         color: highlightColor
     },
+    detailCalendarView: {
+        backgroundColor: bgColorAlt,
+        padding: 15,
+        height: '60%'
+    }, 
+    dateText: {
+        fontSize: 16,
+        marginBottom: 10,
+        fontFamily: specialFont
+    }, 
+    detailRow: {
+        borderColor: bgColor,
+        borderWidth: 1,
+        padding: 5
+    }
+ 
 
 });

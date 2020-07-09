@@ -64,6 +64,32 @@ export default class DatabaseConnection {
         )
     }
 
+    getPlansForDay(day, onSuccess, onError){
+        this.db.transaction(
+            tx => {
+                tx.executeSql(
+                    "SELECT * FROM plan p \
+                    LEFT OUTER JOIN horse h \
+                    ON p.horse_id = h.horse_id \
+                    WHERE p.date = ?;",
+                    [day],
+                    (tx, result) => {
+                        let todaysPlans = []
+                        result.rows._array.map((value) => {
+                            todaysPlans.push({
+                                id: value.plan_id,
+                                horse: value.nick,
+                                goal: value.goal
+                            })
+                        })
+                        onSuccess(tx, todaysPlans)
+                    },
+                    onError
+                )
+            }
+        )
+    }
+
     getAllHorses(onSuccess, onError){
 
         this.db.transaction(
@@ -247,12 +273,14 @@ export default class DatabaseConnection {
 
     savePlanMeta(plan_id, dataHead, dataFoot, onSuccess, onError){
 
-        const duration = parseInt(dataHead.durationHour)*60+parseInt(dataHead.durationMinute)
-        
+        let duration = parseInt(dataHead.durationHour)*60+parseInt(dataHead.durationMinute)
+        if(isNaN(duration)){
+            duration = null
+        }
         this.db.transaction(
             tx => {
                 tx.executeSql(
-                    "INSERT OR REPLACE INTO plan VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+                    "REPLACE INTO plan VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
                     [plan_id,
                     dataHead.date,
                     duration, 
@@ -261,10 +289,11 @@ export default class DatabaseConnection {
                     dataFoot.horseMood,
                     dataFoot.commentary,
                     dataHead.horse.id],
+    
                 )
                 tx.executeSql(
                     "DELETE FROM plan_category WHERE plan_id = ?;",
-                    [plan_id]
+                    [plan_id],
                 )
                 dataHead.selectedCategories.map((value) =>
                 tx.executeSql(
@@ -277,13 +306,13 @@ export default class DatabaseConnection {
             onError,
             onSuccess
         )
-
     }
 
 
 
     savePlanEntry(plan_id, dataEntry, onSuccess, onError){
 
+        console.log("entered")
 
         this.db.transaction(
             tx => {

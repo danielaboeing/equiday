@@ -1,7 +1,6 @@
  
 import React from 'react';
-import { View, Text, ImageStore, ActionSheetIOS } from 'react-native';
-import {Router, Scene, Drawer, Actions, Stack, DrawerLayout} from 'react-native-router-flux';
+import {Router, Scene, Drawer, Stack} from 'react-native-router-flux';
 
 import FrontPage from './FrontPage';
 import MasterDataPage from './MasterDataPage';
@@ -32,9 +31,9 @@ constructor(){
                 <Stack>
                     <Scene key="frontPage" component ={FrontPage} title="Startseite" />
                     <Scene key="masterDataPage" component ={MasterDataPage} title="Stammdaten"  />
-                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen"  initial />
+                    <Scene key="trainingPlanPage" component ={TrainingPlanPage} title="Trainingsplan erstellen" />
                     <Scene key="allExercisesPage" component ={AllExercisesPage} title="Trainings"  />
-                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne" />
+                    <Scene key="trainingPlanOverviewPage" component ={TrainingPlanOverviewPage} title="Trainingspläne" initial />
                     <Scene key="singleExercisePage" component ={SingleExercisePage} title="Übungsübersicht"  />
                 </Stack>
             </Drawer>
